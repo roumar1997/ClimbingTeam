@@ -2,6 +2,7 @@ package com.example.climbingteam.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
@@ -13,6 +14,11 @@ val fonts = mapOf(
     "text" to R.font.open_sans
 )
 
+val fontsObjects= mapOf(
+
+    "header" to FontFamily( Font( fonts.get("header")!!)) ,
+    "text" to FontFamily(Font(fonts.get("text")!!))
+)
 
 val fontSizes = mapOf(
 
