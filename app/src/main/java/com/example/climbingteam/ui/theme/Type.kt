@@ -11,7 +11,7 @@ import com.example.climbingteam.R
 
 val fonts = mapOf(
     "header" to R.font.roboto,
-    "text" to R.font.open_sans
+    "text" to R.font.opensans
 )
 
 val fontsObjects= mapOf(
@@ -20,10 +20,12 @@ val fontsObjects= mapOf(
     "text" to FontFamily(Font(fonts.get("text")!!))
 )
 
-val fontSizes = mapOf(
+val header_large = 20.sp
+val header_medium = 18.sp
+val header_short = 15.sp
+val text_large = 14.sp
+val text_medium = 12.sp
+val text_short= 10.sp
 
-    "header_large" to 18.sp,
-    "header_medium" to 18.sp,
-    "header_sort" to 18.sp
-)
+
 
