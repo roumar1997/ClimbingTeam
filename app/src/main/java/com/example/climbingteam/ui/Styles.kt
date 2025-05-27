@@ -9,12 +9,12 @@ import com.example.climbingteam.R
 object Styles {
 
     val color_main = Color(0xFF64B5F6)
-    val color_main_ = Color(0xFFFFFF00)
+    val color_main_ = Color(0xFF7AABD3)
 
     val color_secondary = Color(0xFFF3F8F8)
     val  color_secondary_ = Color(0xFF000000)
 
-    val color_tertiary = Color(0xFF11E6E6)
+    val color_tertiary = Color(0xFF90CAF9)
     val color_tertiary_ = Color(0xFF8B0000)
 
 
@@ -28,7 +28,7 @@ object Styles {
         "header" to FontFamily( Font( fonts.get("header")!!)) ,
         "text" to FontFamily(Font(fonts.get("text")!!))
     )
-
+    val header_xlarge = 25.sp
     val header_large = 20.sp
     val header_medium = 18.sp
     val header_short = 15.sp
