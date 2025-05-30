@@ -8,4 +8,6 @@ import com.example.climbingteam.ui.Styles.color_main
 object Mods {
     val fillMax=Modifier.fillMaxSize()
     val backMain=Modifier.background(color_main)
+
+
 }

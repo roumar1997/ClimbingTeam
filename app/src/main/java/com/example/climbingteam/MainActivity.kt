@@ -12,6 +12,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.example.climbingteam.Api.jsonApi
+import com.example.climbingteam.composables.specifics.ScreenLogin
 import com.example.climbingteam.composables.specifics.ScreenMain
 
 
@@ -21,7 +22,7 @@ class MainActivity : ComponentActivity() {
         jsonApi.initData(this)
         enableEdgeToEdge()
         setContent {
-            ScreenMain()
+            ScreenLogin()
         }
     }
 }
