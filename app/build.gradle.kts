@@ -54,6 +54,9 @@ dependencies {
     implementation(libs.androidx.material3)
     implementation(libs.androidx.navigation.runtime.android)
     implementation("com.google.code.gson:gson:2.10.1")
+    implementation(libs.firebase.auth.ktx)
+    implementation(libs.firebase.common.ktx)
+    implementation(libs.androidx.navigation.compose.jvmstubs)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -63,5 +66,8 @@ dependencies {
     debugImplementation(libs.androidx.ui.test.manifest)
     // firebase store
     implementation(platform("com.google.firebase:firebase-bom:33.14.0"))
+    //support de ViewModel en compose:
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+
 
 }

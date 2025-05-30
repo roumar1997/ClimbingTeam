@@ -2,7 +2,6 @@ package com.example.climbingteam.composables.specifics
 
 import android.util.Log
 import androidx.compose.foundation.Image
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,20 +11,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ElevatedButton
-import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,26 +28,26 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
 import com.example.climbingteam.R
-import com.example.climbingteam.composables.generals.TextHeader
 import com.example.climbingteam.ui.Mods.backMain
 import com.example.climbingteam.ui.Mods.fillMax
 import com.example.climbingteam.ui.Styles
-import com.example.climbingteam.ui.Styles.header_xlarge
 
 @Preview
 @Composable
-fun ScreenLogin (){
+fun ScreenLogin (
+   // navController: NavController,
+    viewModel: LoginScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
+){
 
     //true = login; false = Create
     val showLoginForm = rememberSaveable{
@@ -84,6 +77,9 @@ fun ScreenLogin (){
                         email, password ->
 
                     Log.d("1","logueando con $email y $password")
+                   /*viewModel.SingInWithEmailAndPassword(email,password){
+
+                   }*/
                 }
             }
             else{
@@ -163,9 +159,10 @@ fun UserForm(
             inputValido = valido
         ){
             onDone(email.value.trim(), password.value.trim())
+            KeyboardController?.hide()
         }
-        onDone(email.value.trim(),password.value.trim())
-        KeyboardController?.hide()
+       // onDone(email.value.trim(),password.value.trim())
+        //KeyboardController?.hide()
     }
 }
 
