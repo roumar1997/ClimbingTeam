@@ -1,5 +1,6 @@
 package com.example.climbingteam.composables.specifics
 
+import android.graphics.Color
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,79 +38,108 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.climbingteam.R
 import com.example.climbingteam.ui.Mods.backMain
 import com.example.climbingteam.ui.Mods.fillMax
 import com.example.climbingteam.ui.Styles
+import com.example.climbingteam.viewmodels.AuthViewModel
 
-@Preview
+//@Preview
 @Composable
-fun ScreenLogin (
-   // navController: NavController,
-    viewModel: LoginScreenViewModel = androidx.lifecycle.viewmodel.compose.viewModel()
-){
+fun ScreenLogin(
+    navController: NavController,
+    vm: AuthViewModel = viewModel()
+) {
 
     //true = login; false = Create
-    val showLoginForm = rememberSaveable{
+    val showLoginForm = rememberSaveable {
         mutableStateOf(true)
     }
-    Surface( modifier = Modifier
-        .fillMaxSize()) {
-        Column (
-            fillMax.padding().then(backMain),
+
+    val error = rememberSaveable {
+        mutableStateOf<String?>(null)
+    }
+    Surface(
+        modifier = Modifier
+            .fillMaxSize()
+    ) {
+        Column(
+            fillMax
+                .padding()
+                .then(backMain),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement =  Arrangement.Center
+            verticalArrangement = Arrangement.Center
 
         )
         {
-            Row (
+            Row(
                 horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.Bottom){
-                Image(painter = painterResource(R.drawable.applogo), contentDescription ="")
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Image(painter = painterResource(R.drawable.applogo), contentDescription = "")
             }
 
-            if (showLoginForm.value){
+            if (showLoginForm.value) {
                 Text("Inicia sesión")
                 UserForm(
                     isCreateAccount = false
                 )
-                {
-                        email, password ->
+                { email, password ->
 
-                    Log.d("1","logueando con $email y $password")
-                   /*viewModel.SingInWithEmailAndPassword(email,password){
+                    Log.d("1", "logueando con $email y $password")
+                    vm.login(email, password, onSucces = {
+                        error.value = null
+                        navController.navigate("main")
 
-                   }*/
+                    }, onError = {
+                        Log.d("err_login", it)
+                        error.value = it
+                    })
                 }
-            }
-            else{
+            } else {
                 Text("Crea una cuenta")
                 UserForm(
                     isCreateAccount = true
                 )
-                {
-                        email, password ->
-                    Log.d("1","creando cuenta con $email y $password")
+                { email, password ->
+
+                    Log.d("1", "creando cuenta con $email y $password")
+                    vm.register(email, password, onSucces = {
+                        error.value = null
+                        navController.navigate("main")
+                    }, onError = {
+                        Log.d("err_register", it)
+                        error.value = it
+                    })
                 }
             }
 
 
+            error.value?.let{
+                Text(it, color = MaterialTheme.colorScheme.error)
+            }
+
+
+
+
 
             Spacer(modifier = Modifier.height(15.dp))
-            Row (
+            Row(
 
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
-            ){
-                val text1=
-                    if (showLoginForm.value)"¿No tienes cuenta?"
+            ) {
+                val text1 =
+                    if (showLoginForm.value) "¿No tienes cuenta?"
                     else "¿Ya tienes cuenta?"
-                val text2=
-                    if (showLoginForm.value)"Registrate"
+                val text2 =
+                    if (showLoginForm.value) "Registrate"
                     else "Inicia Sesión"
                 Text(text = text1)
-                Text(text = text2,
+                Text(
+                    text = text2,
                     modifier = Modifier
                         .clickable { showLoginForm.value = !showLoginForm.value }
                         .padding(start = 5.dp),
@@ -120,14 +151,12 @@ fun ScreenLogin (
     }
 
 
-
-
 }
 
 @Composable
 fun UserForm(
     isCreateAccount: Boolean = false,
-    onDone: (String, String)-> Unit = {email, pwd ->}
+    onDone: (String, String) -> Unit = { email, pwd -> }
 ) {
     val email = rememberSaveable {
         mutableStateOf("")
@@ -138,14 +167,14 @@ fun UserForm(
     val passwordVisible = rememberSaveable {
         mutableStateOf(false)
     }
-    val valido = remember(email.value,password.value){
+    val valido = remember(email.value, password.value) {
         email.value.trim().isNotEmpty() &&
                 password.value.trim().isNotEmpty()
     }
 
 
     val KeyboardController = LocalSoftwareKeyboardController.current
-    Column (horizontalAlignment = Alignment.CenterHorizontally){
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
         EmailInput(
             emailState = email
         )
@@ -155,13 +184,13 @@ fun UserForm(
             passwordVisible = passwordVisible
         )
         SubmitButton(
-            textId = if (isCreateAccount)"crear cuenta" else "login",
+            textId = if (isCreateAccount) "crear cuenta" else "login",
             inputValido = valido
-        ){
+        ) {
             onDone(email.value.trim(), password.value.trim())
             KeyboardController?.hide()
         }
-       // onDone(email.value.trim(),password.value.trim())
+        // onDone(email.value.trim(),password.value.trim())
         //KeyboardController?.hide()
     }
 }
@@ -170,14 +199,18 @@ fun UserForm(
 fun SubmitButton(
     textId: String,
     inputValido: Boolean,
-    onClic: () ->Unit
+    onClic: () -> Unit
 
 ) {
-    Button(onClick = onClic,
-        enabled = inputValido) {
-        Text(text = textId,
+    Button(
+        onClick = onClic,
+        enabled = inputValido
+    ) {
+        Text(
+            text = textId,
             modifier = Modifier
-                .padding(5.dp))
+                .padding(5.dp)
+        )
     }
 
 }
@@ -195,9 +228,9 @@ fun PasswordInput(
     }
 
     val icon = if (passwordVisible.value) {
-        Icons.Filled.Favorite // Cambia esto por un ícono adecuado
+        Icons.Filled.Favorite // falta b uscar el ojo
     } else {
-        Icons.Filled.FavoriteBorder // Cambia esto por un ícono adecuado
+        Icons.Filled.FavoriteBorder // falta buscar el ojo
     }
 
     OutlinedTextField(
@@ -224,16 +257,14 @@ fun PasswordInput(
 }
 
 
-
 @Composable
-fun EmailInput
-            (
+fun EmailInput(
     emailState: MutableState<String>,
-    labelId: String ="Email"
+    labelId: String = "Email"
 ) {
-    InputFields (
+    InputFields(
         valueState = emailState,
-        labelId =  labelId,
+        labelId = labelId,
         inputType = KeyboardType.Email
     )
 }
@@ -244,11 +275,11 @@ fun InputFields(
     labelId: String,
     isSingleLine: Boolean = true,
     inputType: KeyboardType
-){
+) {
     OutlinedTextField(
         value = valueState.value,
-        onValueChange = {valueState.value = it},
-        label = { Text(text = labelId)},
+        onValueChange = { valueState.value = it },
+        label = { Text(text = labelId) },
         singleLine = isSingleLine,
 
         modifier = Modifier

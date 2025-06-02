@@ -50,6 +50,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.climbingteam.Api.jsonApi
 import com.example.climbingteam.R
@@ -58,14 +59,17 @@ import com.example.climbingteam.composables.generals.TextParrafo
 import com.example.climbingteam.ui.Mods.backMain
 import com.example.climbingteam.ui.Mods.fillMax
 import com.example.climbingteam.ui.Styles
+import com.example.climbingteam.viewmodels.AuthViewModel
 import kotlinx.coroutines.launch
 
 
+
 @OptIn(ExperimentalMaterial3Api::class)
-@Preview
+//@Preview
 @Composable
 fun ScreenMain(
-    //navController: NavController
+    navController: NavController,
+    vm: AuthViewModel = viewModel()
 ){
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
@@ -92,14 +96,22 @@ fun ScreenMain(
                         }
                     }
                     Row (Modifier.fillMaxSize().weight(0.1f).background(Styles.color_tertiary), horizontalArrangement = Arrangement.Center, verticalAlignment = Alignment.CenterVertically){
-                        ElevatedButton(onClick =  {}) {
+                        ElevatedButton(onClick =  {
+                            //navController.navigate("ajustes")
+                        }) {
                             Icon(Icons.Filled.Settings, contentDescription = "")
                             Spacer(modifier = Modifier.width(15.dp))
                             TextParrafo("Ajustes", Styles.text_large)
                         }
                     }
                     Row (Modifier.fillMaxSize().weight(0.65f).background(Styles.color_tertiary)){
-
+                        ElevatedButton(onClick =  {
+                            vm.logout()
+                        }) {
+                            Icon(Icons.Filled.Settings, contentDescription = "")
+                            Spacer(modifier = Modifier.width(15.dp))
+                            TextParrafo("Logout", Styles.text_large)
+                        }
                     }
 
                 }

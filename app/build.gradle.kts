@@ -43,6 +43,9 @@ android {
 }
 
 dependencies {
+    debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("androidx.compose.ui:ui-tooling-preview")
+
     implementation("androidx.compose.material:material-icons-extended:1.4.0")
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
@@ -56,7 +59,8 @@ dependencies {
     implementation("com.google.code.gson:gson:2.10.1")
     implementation(libs.firebase.auth.ktx)
     implementation(libs.firebase.common.ktx)
-    implementation(libs.androidx.navigation.compose.jvmstubs)
+    //implementation(libs.androidx.navigation.compose.jvmstubs)
+    implementation("androidx.navigation:navigation-compose:2.9.0")
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
