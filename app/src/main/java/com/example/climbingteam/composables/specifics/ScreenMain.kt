@@ -1,5 +1,3 @@
-
-
 // src/main/kotlin/com/example/climbingteam/composables/specifics/ScreenMain.kt
 package com.example.climbingteam.composables.specifics
 
@@ -18,7 +16,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.width
@@ -30,6 +27,7 @@ import androidx.compose.material.icons.filled.ArrowBackIosNew
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
@@ -121,6 +119,9 @@ fun ScreenMain(
     // —— 4) Estado para mostrar indicador de “Loading” mientras se obtienen las dos estaciones ——
     var loading by remember { mutableStateOf(false) }
 
+    // Scroll State para contenido desplazable
+    val scrollState = rememberScrollState()
+
     // *** BOX que pinta TODO el fondo de azul y aplica padding de system bars ***
     Box(
         modifier = Modifier
@@ -133,12 +134,12 @@ fun ScreenMain(
             drawerContent = {
                 // ———————————————— DRAWER ORIGINAL ————————————————
                 ModalDrawerSheet(modifier = Modifier.fillMaxWidth(0.5f)) {
-                    Column(Modifier.fillMaxHeight()) {
+                    Column(Modifier.fillMaxSize()) {
                         // Cabecera con logo
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .weight(0.15f)
+                                .height(80.dp)
                                 .background(Styles.color_main_),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
@@ -153,12 +154,12 @@ fun ScreenMain(
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .weight(0.1f)
+                                .height(56.dp)
                                 .background(Styles.color_tertiary),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            ElevatedButton(onClick = { /* TODO: navegar a “Mi cuenta” */ }) {
+                            ElevatedButton(onClick = { /* navegar a “Mi cuenta” */ }) {
                                 Icon(Icons.Filled.AccountCircle, contentDescription = null)
                                 Spacer(modifier = Modifier.width(15.dp))
                                 TextParrafo("Cuenta de usuario", Styles.text_large)
@@ -169,12 +170,12 @@ fun ScreenMain(
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .weight(0.1f)
+                                .height(56.dp)
                                 .background(Styles.color_tertiary),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            ElevatedButton(onClick = { /* TODO: navegar a “Ajustes” */ }) {
+                            ElevatedButton(onClick = { /* navegar a “Ajustes” */ }) {
                                 Icon(Icons.Filled.Settings, contentDescription = null)
                                 Spacer(modifier = Modifier.width(15.dp))
                                 TextParrafo("Ajustes", Styles.text_large)
@@ -185,7 +186,6 @@ fun ScreenMain(
                         Row(
                             Modifier
                                 .fillMaxWidth()
-                                .weight(0.65f)
                                 .background(Styles.color_tertiary),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
@@ -217,19 +217,21 @@ fun ScreenMain(
                     )
                 }
             ) { innerPadding ->
-                // — El contenido va dentro de esta Column —
+                // — El contenido va dentro de esta Column con scroll —
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
+                        .verticalScroll(scrollState)
                         .padding(innerPadding)
+                        .padding(vertical = 16.dp) // espacio arriba/abajo
                 ) {
                     // —— A) Logo central superior ——
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(0.30f),
+                            .padding(bottom = 24.dp),
                         horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.Bottom
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Image(
                             painter = painterResource(R.drawable.applogo),
@@ -241,12 +243,11 @@ fun ScreenMain(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(0.35f)
                             .padding(horizontal = 16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         // ======== BUSCA LOCALIDAD 1 ========
-                        Column(modifier = Modifier.weight(0.5f)) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Busca localidad 1",
                                 color = Color.DarkGray,
@@ -258,13 +259,11 @@ fun ScreenMain(
                                     selectedLocal1 = s
                                     if (!expanded1) expanded1 = true
                                 },
-                                label = { Text("") },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(FocusRequester()),
                                 trailingIcon = {
-                                    androidx.compose.material3.ExposedDropdownMenuDefaults
-                                        .TrailingIcon(expanded1)
+                                    androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(expanded1)
                                 }
                             )
                             DropdownMenu(
@@ -276,37 +275,36 @@ fun ScreenMain(
                                 properties = PopupProperties(focusable = false)
                             ) {
                                 val scroll1 = rememberScrollState()
-                                Box(
-                                    modifier = Modifier
+                                Column(
+                                    Modifier
                                         .heightIn(max = 200.dp)
                                         .verticalScroll(scroll1)
                                         .drawVerticalScrollbar(scroll1)
                                 ) {
-                                    Column {
-                                        jsonApi.estaciones.features.forEach { feature ->
-                                            if (feature.properties.NOMBRE
-                                                    .lowercase(Locale.ROOT)
-                                                    .contains(selectedLocal1.lowercase(Locale.ROOT))
-                                            ) {
-                                                DropdownMenuItem(
-                                                    text = { Text(feature.properties.NOMBRE) },
-                                                    onClick = {
-                                                        selectedLocal1 = feature.properties.NOMBRE
-                                                        selectedFeature1 = feature
-                                                        expanded1 = false
-                                                    }
-                                                )
-                                            }
+                                    jsonApi.estaciones.features.forEach { feature ->
+                                        if (feature.properties.NOMBRE
+                                                .lowercase(Locale.ROOT)
+                                                .contains(selectedLocal1.lowercase(Locale.ROOT))
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text(feature.properties.NOMBRE) },
+                                                onClick = {
+                                                    selectedLocal1 = feature.properties.NOMBRE
+                                                    selectedFeature1 = feature
+                                                    expanded1 = false
+                                                }
+                                            )
                                         }
                                     }
                                 }
                             }
                         }
 
+                        // Espacio entre los dos dropdowns
                         Spacer(modifier = Modifier.width(16.dp))
 
                         // ======== BUSCA LOCALIDAD 2 ========
-                        Column(modifier = Modifier.weight(0.5f)) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Busca localidad 2",
                                 color = Color.DarkGray,
@@ -318,13 +316,11 @@ fun ScreenMain(
                                     selectedLocal2 = s
                                     if (!expanded2) expanded2 = true
                                 },
-                                label = { Text("") },
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .focusRequester(FocusRequester()),
                                 trailingIcon = {
-                                    androidx.compose.material3.ExposedDropdownMenuDefaults
-                                        .TrailingIcon(expanded2)
+                                    androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(expanded2)
                                 }
                             )
                             DropdownMenu(
@@ -336,27 +332,25 @@ fun ScreenMain(
                                 properties = PopupProperties(focusable = false)
                             ) {
                                 val scroll2 = rememberScrollState()
-                                Box(
-                                    modifier = Modifier
+                                Column(
+                                    Modifier
                                         .heightIn(max = 200.dp)
                                         .verticalScroll(scroll2)
                                         .drawVerticalScrollbar(scroll2)
                                 ) {
-                                    Column {
-                                        jsonApi.estaciones.features.forEach { feature ->
-                                            if (feature.properties.NOMBRE
-                                                    .lowercase(Locale.ROOT)
-                                                    .contains(selectedLocal2.lowercase(Locale.ROOT))
-                                            ) {
-                                                DropdownMenuItem(
-                                                    text = { Text(feature.properties.NOMBRE) },
-                                                    onClick = {
-                                                        selectedLocal2 = feature.properties.NOMBRE
-                                                        selectedFeature2 = feature
-                                                        expanded2 = false
-                                                    }
-                                                )
-                                            }
+                                    jsonApi.estaciones.features.forEach { feature ->
+                                        if (feature.properties.NOMBRE
+                                                .lowercase(Locale.ROOT)
+                                                .contains(selectedLocal2.lowercase(Locale.ROOT))
+                                        ) {
+                                            DropdownMenuItem(
+                                                text = { Text(feature.properties.NOMBRE) },
+                                                onClick = {
+                                                    selectedLocal2 = feature.properties.NOMBRE
+                                                    selectedFeature2 = feature
+                                                    expanded2 = false
+                                                }
+                                            )
                                         }
                                     }
                                 }
@@ -364,13 +358,13 @@ fun ScreenMain(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     // —— C) Botón “Comparar tiempo” centralizado ——
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(0.10f),
+                            .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.Center
                     ) {
                         ElevatedButton(
@@ -479,22 +473,22 @@ fun ScreenMain(
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
 
                     // —— D) Dos tarjetas con los resultados uno al lado del otro ——
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .weight(0.25f)
                             .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
                         // —— TARJETA IZQUIERDA —— (Localidad 1)
                         ElevatedCard(
-                            modifier = Modifier
-                                .weight(0.48f)
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
+                            Column(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)) {
                                 TextParrafo("Hora 1: $horaObs1", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Temp 1: $temp1", Styles.text_medium)
@@ -504,15 +498,17 @@ fun ScreenMain(
                                 TextParrafo("Viento 1: $vientoVel1 ($vientoDir1)", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Sens. Térm 1: $sensT1", Styles.text_medium)
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
 
                         // —— TARJETA DERECHA —— (Localidad 2)
                         ElevatedCard(
-                            modifier = Modifier
-                                .weight(0.48f)
+                            modifier = Modifier.weight(1f)
                         ) {
-                            Column(modifier = Modifier.padding(12.dp)) {
+                            Column(modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)) {
                                 TextParrafo("Hora 2: $horaObs2", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Temp 2: $temp2", Styles.text_medium)
@@ -522,20 +518,21 @@ fun ScreenMain(
                                 TextParrafo("Viento 2: $vientoVel2 ($vientoDir2)", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Sens. Térm 2: $sensT2", Styles.text_medium)
+                                Spacer(modifier = Modifier.height(8.dp))
                             }
                         }
                     }
 
-                    // —— E) Relleno final para empujar contenido hacia arriba si sobra espacio ——
-                    Spacer(modifier = Modifier.weight(1f))
+                    // —— E) Un poco de espacio para empujar hacia arriba si sobra espacio ——
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                // —— Overlay de “Loading” que aparece por encima de todo el contenido mientras loading == true …—
+                // —— Overlay de “Loading” que aparece por encima de todo el contenido mientras loading == true ——
                 if (loading) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .background(Color(0x80000000)), // Semitransparente oscuro
+                            .background(Color(0x80000000)), // semitransparente
                         contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(color = Color.White)
@@ -548,5 +545,66 @@ fun ScreenMain(
 
 @Composable
 fun MainBotbar() {
-    // (No hemos modificado esta parte; tu BottomAppBar permanece igual)
+    BottomAppBar(containerColor = Styles.color_tertiary) {
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            Column(
+                modifier = Modifier.weight(0.30f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Filled.ArrowBackIosNew,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp)
+                )
+            }
+            Column(
+                modifier = Modifier.weight(0.05f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Divider(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp),
+                    color = Color.DarkGray
+                )
+            }
+            Column(
+                modifier = Modifier.weight(0.30f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Filled.DateRange,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp)
+                )
+            }
+            Column(
+                modifier = Modifier.weight(0.05f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Divider(
+                    modifier = Modifier
+                        .fillMaxHeight()
+                        .width(1.dp),
+                    color = Color.DarkGray
+                )
+            }
+            Column(
+                modifier = Modifier.weight(0.30f),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Filled.AccountCircle,
+                    contentDescription = null,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(24.dp)
+                )
+            }
+        }
+    }
 }
