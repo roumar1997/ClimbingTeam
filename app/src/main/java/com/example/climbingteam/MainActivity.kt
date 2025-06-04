@@ -35,6 +35,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         setContent {
+
                 HostNavigator(authViewModel)
 
         }

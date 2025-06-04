@@ -1,3 +1,4 @@
+// src/main/kotlin/com/example/climbingteam/Api/jsonApi.kt
 package com.example.climbingteam.Api
 
 import android.content.Context
@@ -5,17 +6,10 @@ import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import okhttp3.OkHttp
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
-import org.json.JSONObject
-import java.io.File
-import java.time.Instant
-import java.time.ZoneOffset
-import java.time.format.DateTimeFormatter
-import java.util.Date
-
+import java.io.EOFException
 
 data class FeatureCollection(
     val type: String,
@@ -46,113 +40,166 @@ data class Geometry(
     val coordinates: List<Double>
 )
 
-
-
 object jsonApi {
-    var gson = Gson()
-    var json = ""
-    lateinit var estaciones : FeatureCollection
+    private val gson = Gson()
+    private var json = ""
+    lateinit var estaciones: FeatureCollection
 
-    fun initData (context: Context){
-
-        json = context.assets.open("Estaciones_Completas.geojson").bufferedReader().use { it.readText() }
-        estaciones = gson.fromJson(json,FeatureCollection::class.java)
+    /** Carga el GeoJSON de estaciones desde “assets/Estaciones_Completas.geojson” */
+    fun initData(context: Context) {
+        json = context.assets.open("Estaciones_Completas.geojson")
+            .bufferedReader()
+            .use { it.readText() }
+        estaciones = gson.fromJson(json, FeatureCollection::class.java)
     }
 
-    fun formatDateToUTCString(date: Date): String {
-        // Convierte Date a Instant y luego a un ZonedDateTime en UTC
-        val utcDateTime = date.toInstant().atOffset(ZoneOffset.UTC)
-        // Crea un formateador que genere "yyyy-MM-dd'T'HH:mm:ss'UTC'"
-        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'UTC'")
+    /** Convierte Date a formato “yyyy-MM-dd'T'HH:mm:ss'UTC'” */
+    fun formatDateToUTCString(date: java.util.Date): String {
+        val utcDateTime = date.toInstant().atOffset(java.time.ZoneOffset.UTC)
+        val formatter =
+            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'UTC'")
         return utcDateTime.format(formatter)
     }
 
-    suspend fun consultarObservacionConvencional(idema: String, apiKey: String) {
-        // 1) Construye la URL inicial (no lleva fechas explícitas):
-        val urlInicial = "https://opendata.aemet.es/opendata/api/observacion/convencional/datos/estacion/$idema"
-        Log.d("AEMET", "URL inicial (sin api_key): $urlInicial")
-
+    /**
+     * Recupera la última observación convencional de AEMET para “idema” (INDICATIVO).
+     * → Si la primera llamada devuelve 404 o `datos` = null, se reintenta una vez tras 500 ms.
+     * → Devuelve `ObservacionEstacion?` o `null` en caso de error definitivo.
+     */
+    suspend fun consultarObservacionConvencional(
+        idema: String,
+        apiKey: String
+    ): ObservacionEstacion? = withContext(Dispatchers.IO) {
         val client = OkHttpClient()
-        var response: Response? = null
+        val urlMeta =
+            "https://opendata.aemet.es/opendata/api/observacion/convencional/datos/estacion/$idema?api_key=$apiKey"
+        Log.d("AEMET_URL_META", urlMeta)
 
-        withContext(Dispatchers.IO) {
+        // Intentar hasta 2 veces (0 o 1 reintento tras 500 ms) antes de dar null:
+        repeat(2) { intento ->
             try {
-                // === Paso 1: pedimos JSON que contiene "datos" ===
-                val requestInicial = Request.Builder()
-                    .url(urlInicial)
-                    .addHeader("Accept", "application/json")
-                    .addHeader("api_key", apiKey)
+                // === Paso 1: pedimos metadatos ===
+                val requestMeta = Request.Builder()
+                    .url(urlMeta)
+                    .get()
                     .build()
 
-                response = client.newCall(requestInicial).execute()
-                if (!response!!.isSuccessful) {
-                    Log.e("AEMET", "Error en petición inicial: HTTP ${response!!.code}")
-                    return@withContext
+                val metaResponse: Response = client.newCall(requestMeta).execute()
+                if (metaResponse.code != 200) {
+                    Log.e("AEMET", "Intento $intento: error en petición meta: HTTP ${metaResponse.code}")
+                    metaResponse.close()
+                    if (intento == 0) {
+                        Thread.sleep(500)
+                        return@repeat
+                    } else {
+                        return@withContext null
+                    }
                 }
 
-                val body1 = response!!.body?.string()
-                if (body1.isNullOrBlank()) {
-                    Log.e("AEMET", "Respuesta inicial vacía.")
-                    return@withContext
+                val bodyMeta = metaResponse.body?.string().orEmpty()
+                metaResponse.close()
+                if (bodyMeta.isBlank()) {
+                    Log.e("AEMET", "Intento $intento: respuesta meta vacía")
+                    if (intento == 0) {
+                        Thread.sleep(500)
+                        return@repeat
+                    } else {
+                        return@withContext null
+                    }
                 }
 
-                // Parseamos JSON para extraer "datos"
-                val json1 = JSONObject(body1)
-                val estado = json1.optInt("estado", -1)
-                if (estado != 200) {
-                    Log.w(
-                        "AEMET",
-                        "Estado != 200 en JSON inicial: estado=$estado, descripción=\"${json1.optString("descripcion", "")}\""
-                    )
-                    return@withContext
+                // Parseamos {estado, datos} solamente
+                val metaObj = gson.fromJson(bodyMeta, MetaResponse::class.java)
+                if (metaObj.estado != 200 || metaObj.datos.isNullOrBlank()) {
+                    Log.e("AEMET", "Intento $intento: estado != 200 o 'datos' vacío (estado=${metaObj.estado})")
+                    if (intento == 0) {
+                        Thread.sleep(500)
+                        return@repeat
+                    } else {
+                        return@withContext null
+                    }
                 }
 
-                val urlCorta = json1.optString("datos", null)
-                if (urlCorta.isNullOrBlank()) {
-                    Log.e("AEMET", "No se obtuvo campo 'datos' en JSON inicial.")
-                    return@withContext
-                }
-                Log.d("AEMET", "URL corta (datos): $urlCorta")
-                response!!.body?.close()
-
-                // === Paso 2: peticion a la URL corta para descargar observaciones ===
+                // === Paso 2: pedimos JSON real de observaciones ===
+                val urlDatos = metaObj.datos!!
+                Log.d("AEMET_URL_DATOS", urlDatos)
                 val requestDatos = Request.Builder()
-                    .url(urlCorta)
-                    .addHeader("Accept", "application/json")
-                    .addHeader("api_key", apiKey)
+                    .url(urlDatos)
+                    .get()
                     .build()
 
-                response = client.newCall(requestDatos).execute()
-                if (!response!!.isSuccessful) {
-                    Log.e("AEMET", "Error al pedir datos reales: HTTP ${response!!.code}")
-                    return@withContext
+                // Intento inicial
+                val dataResponse: Response = try {
+                    client.newCall(requestDatos).execute()
+                } catch (e: EOFException) {
+                    Log.w("AEMET", "Intento $intento: EOFException al leer datos. Reintentando en 500 ms…")
+                    Thread.sleep(500)
+                    client.newCall(requestDatos).execute()
                 }
 
-                // Si la API devolviera 204 No Content (poco probable aquí), lo manejamos:
-                if (response!!.code == 204) {
-                    Log.w("AEMET", "204 No Content: no hay datos para estación $idema.")
-                    return@withContext
+                if (dataResponse.code != 200) {
+                    Log.e("AEMET", "Intento $intento: error en petición datos finales: HTTP ${dataResponse.code}")
+                    dataResponse.close()
+                    if (intento == 0) {
+                        Thread.sleep(500)
+                        return@repeat
+                    } else {
+                        return@withContext null
+                    }
                 }
 
-                val body2 = response!!.body?.string()
-                if (body2.isNullOrBlank()) {
-                    Log.w("AEMET", "Cuerpo vacío en URL corta (posible falta de datos).")
-                    return@withContext
+                val bodyDatos = dataResponse.body?.string().orEmpty()
+                dataResponse.close()
+                if (bodyDatos.isBlank()) {
+                    Log.e("AEMET", "Intento $intento: cuerpo de datos final vacío")
+                    if (intento == 0) {
+                        Thread.sleep(500)
+                        return@repeat
+                    } else {
+                        return@withContext null
+                    }
                 }
 
-                // Aquí ya tienes el JSON definitivo con todas las observaciones de las últimas 24 h:
-                Log.d("AEMET", "Observación convencional:\n$body2")
-                // … y puedes parsear body2 con JSONObject, Moshi, Gson, etc. …
+                // bodyDatos = ARRAY JSON de ObservacionEstacion[]
+                val listType = com.google.gson.reflect.TypeToken
+                    .getParameterized(List::class.java, ObservacionEstacion::class.java)
+                    .type
 
-            } catch (e: java.io.EOFException) {
-                Log.e("AEMET", "EOFException: respuesta truncada", e)
+                val listaObservaciones: List<ObservacionEstacion> =
+                    gson.fromJson(bodyDatos, listType)
+
+                if (listaObservaciones.isEmpty()) {
+                    Log.w("AEMET", "Intento $intento: lista de observaciones vacía")
+                    if (intento == 0) {
+                        Thread.sleep(500)
+                        return@repeat
+                    } else {
+                        return@withContext null
+                    }
+                }
+
+                // Devolvemos la primera (más reciente) y salimos
+                return@withContext listaObservaciones.first()
+
             } catch (e: Exception) {
-                Log.e("AEMET", "Excepción al conectar a AEMET", e)
-            } finally {
-                response?.body?.close()
+                Log.e("AEMET", "Intento $intento: excepción conectando a AEMET", e)
+                if (intento == 0) {
+                    Thread.sleep(500)
+                    return@repeat
+                } else {
+                    return@withContext null
+                }
             }
         }
+
+        // Si falló ambos intentos:
+        null
     }
 
+    private data class MetaResponse(
+        val descripcion: String?,
+        val estado: Int,
+        val metadatos: String?,
+        val datos: String?
+    )
 }
-
