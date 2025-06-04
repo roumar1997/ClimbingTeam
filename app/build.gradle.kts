@@ -72,6 +72,7 @@ dependencies {
     implementation(platform("com.google.firebase:firebase-bom:33.14.0"))
     //support de ViewModel en compose:
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
 
 }
