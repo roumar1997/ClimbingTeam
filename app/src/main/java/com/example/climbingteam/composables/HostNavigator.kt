@@ -5,6 +5,7 @@ import androidx.compose.runtime.collectAsState
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.example.climbingteam.composables.specifics.HistorialScreen
 import com.example.climbingteam.composables.specifics.ScreenLogin
 import com.example.climbingteam.composables.specifics.ScreenMain
 import com.example.climbingteam.viewmodels.AuthViewModel
@@ -24,6 +25,9 @@ fun HostNavigator(vm: AuthViewModel) {
             ScreenMain(navController= navController, vm=vm)
         }
 
+        composable("historial") {
+            HistorialScreen(navController = navController)
+        }
 
 
         // más pantallas..

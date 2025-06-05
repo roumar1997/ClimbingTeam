@@ -1,6 +1,7 @@
 package com.example.climbingteam.viewmodels
 
 import androidx.lifecycle.ViewModel
+import com.example.climbingteam.repository.ConsultaRepository
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,7 +41,12 @@ class AuthViewModel : ViewModel() {
                 onError(it.localizedMessage)
             }
     }
+// consultar repositorio
 
+    fun guardarConsultaClima(datos: Map<String, Any>) {
+        val userId = auth.currentUser?.uid ?: return
+        ConsultaRepository.guardarConsulta(userId, datos)
+    }
 
 
 }

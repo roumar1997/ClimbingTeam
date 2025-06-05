@@ -43,6 +43,7 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.firestore.ktx)
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-tooling-preview")
 

@@ -465,11 +465,43 @@ fun ScreenMain(
                                     // —— Tras descargar ambas, desactivamos loading ——
                                     launch(Dispatchers.Main) {
                                         loading = false
+
+                                        // Guardar la consulta en Firestore
+                                        val userId = vm.user.value?.uid
+                                        if (userId != null) {
+                                            val datosConsulta = mapOf(
+                                                "sector" to "${selectedLocal1} & ${selectedLocal2}",
+                                                "temperatura" to "$temp1 / $temp2",
+                                                "humedad" to "$humedad1 / $humedad2",
+                                                "viento" to "$vientoVel1 $vientoDir1 / $vientoVel2 $vientoDir2",
+                                                "sensacion_termica" to "$sensT1 / $sensT2",
+                                                "timestamp" to com.google.firebase.Timestamp.now()
+                                            )
+
+                                            com.example.climbingteam.repository.ConsultaRepository
+                                                .guardarConsulta(userId, datosConsulta)
+                                        }
                                     }
                                 }
                             }
                         ) {
                             Text("Comparar tiempo")
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(24.dp))
+
+                    // —— BOTÓN “Ver historial” —— Justo después del botón “Comparar tiempo”
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        ElevatedButton(onClick = {
+                            navController.navigate("historial")
+                        }) {
+                            Text("Ver historial")
                         }
                     }
 
@@ -486,9 +518,11 @@ fun ScreenMain(
                         ElevatedCard(
                             modifier = Modifier.weight(1f)
                         ) {
-                            Column(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp)) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp)
+                            ) {
                                 TextParrafo("Hora 1: $horaObs1", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Temp 1: $temp1", Styles.text_medium)
@@ -506,9 +540,11 @@ fun ScreenMain(
                         ElevatedCard(
                             modifier = Modifier.weight(1f)
                         ) {
-                            Column(modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp)) {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(12.dp)
+                            ) {
                                 TextParrafo("Hora 2: $horaObs2", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Temp 2: $temp2", Styles.text_medium)

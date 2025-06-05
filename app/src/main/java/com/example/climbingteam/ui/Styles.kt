@@ -5,8 +5,10 @@ import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.sp
 import com.example.climbingteam.R
+import androidx.compose.ui.text.TextStyle
 
 object Styles {
+
 
     val color_main = Color(0xFF64B5F6)
     val color_main_ = Color(0xFF7AABD3)
@@ -35,5 +37,30 @@ object Styles {
     val text_large = 14.sp
     val text_medium = 12.sp
     val text_short= 10.sp
+
+
+
+
+
+
+    val textStyleXlarge = TextStyle(
+        fontSize = header_xlarge,
+        fontFamily = fontsObjects["header"]
+    )
+
+    val textStyleLarge = TextStyle(
+        fontSize = header_large,
+        fontFamily = fontsObjects["header"]
+    )
+
+    val textStyleMedium = TextStyle(
+        fontSize = text_medium,
+        fontFamily = fontsObjects["text"]
+    )
+
+    val textStyleSmall = TextStyle(
+        fontSize = text_short,
+        fontFamily = fontsObjects["text"]
+    )
 
 }
