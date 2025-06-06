@@ -30,7 +30,7 @@ fun HistorialScreen(
     LaunchedEffect(userId) {
         userId?.let {
             ConsultaRepository.obtenerUltimasConsultas(
-                userId = it,
+
                 onSuccess = { data -> consultas = data },
                 onFailure = { error -> println("Error al cargar historial: $error") }
             )

@@ -65,40 +65,39 @@ data class ObservacionEstacion(
         }
     }
 
-    /**
-     * Calcula la sensación térmica en ºC aproximada.
-     * - Si T ≤ 10°C: calcula Wind Chill (sens. térmica por frío).
-     * - Si T ≥ 27°C: calcula Heat Index (sensación por calor/humedad).
-     * - Si 10 < T < 27: devuelve T sin cambios.
-     */
+
+
+
+    //calcular sensacion termica aproximada con los metadatos
+    //humedad,sensacion termica,etc
     fun getSensacionTermica(): Double? {
-        val T = getTempDouble() ?: return null
-        val RH = getHumedadDouble() ?: return null
-        val v = getVelVientoDouble() ?: return null
+        val Tiempo = getTempDouble() ?: return null
+        val hume = getHumedadDouble() ?: return null
+        val viento = getVelVientoDouble() ?: return null
 
         return when {
-            // 1) Wind Chill (temperaturas ≤ 10°C)
-            T <= 10.0 && v > 4.8 -> {
-                13.12 + 0.6215 * T - 11.37 * v.pow(0.16) + 0.3965 * T * v.pow(0.16)
+
+            Tiempo   <= 10.0 && viento > 4.8 -> {
+                13.12 + 0.6215 * Tiempo - 11.37 * viento.pow(0.16) + 0.3965 * Tiempo * viento.pow(0.16)
             }
-            // 2) Heat Index (temperaturas ≥ 27°C)
-            T >= 27.0 -> {
-                val t2 = T * T
-                val rh2 = RH * RH
+
+            Tiempo >= 27.0 -> {
+                val t2 = Tiempo * Tiempo
+                val rh2 = hume * hume
                 (
                         -8.784695 +
-                                1.61139411 * T +
-                                2.33854900 * RH -
-                                0.14611605 * T * RH -
+                                1.61139411 * Tiempo +
+                                2.33854900 * hume -
+                                0.14611605 * Tiempo * hume -
                                 0.012308094 * t2 -
                                 0.016424828 * rh2 +
-                                0.002211732 * t2 * RH +
-                                0.00072546 * T * rh2 -
+                                0.002211732 * t2 * hume +
+                                0.00072546 * Tiempo * rh2 -
                                 0.000003582 * t2 * rh2
                         )
             }
-            // 3) Entre 10 y 27°C: devolvemos T sin cambios
-            else -> T
+
+            else -> Tiempo
         }
     }
 }

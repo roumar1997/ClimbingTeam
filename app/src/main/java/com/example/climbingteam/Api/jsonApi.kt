@@ -61,11 +61,7 @@ object jsonApi {
         return utcDateTime.format(formatter)
     }
 
-    /**
-     * Recupera la última observación convencional de AEMET para “idema” (INDICATIVO).
-     * → Si la primera llamada devuelve 404 o `datos` = null, se reintenta una vez tras 500 ms.
-     * → Devuelve `ObservacionEstacion?` o `null` en caso de error definitivo.
-     */
+
     suspend fun consultarObservacionConvencional(
         idema: String,
         apiKey: String
@@ -75,10 +71,10 @@ object jsonApi {
             "https://opendata.aemet.es/opendata/api/observacion/convencional/datos/estacion/$idema?api_key=$apiKey"
         Log.d("AEMET_URL_META", urlMeta)
 
-        // Intentar hasta 2 veces (0 o 1 reintento tras 500 ms) antes de dar null:
+       //repite dos veces por que no siempre da los datos
         repeat(2) { intento ->
             try {
-                // === Paso 1: pedimos metadatos ===
+                //pedimos metadatos
                 val requestMeta = Request.Builder()
                     .url(urlMeta)
                     .get()
@@ -108,7 +104,7 @@ object jsonApi {
                     }
                 }
 
-                // Parseamos {estado, datos} solamente
+                //losdatos y metadatos
                 val metaObj = gson.fromJson(bodyMeta, MetaResponse::class.java)
                 if (metaObj.estado != 200 || metaObj.datos.isNullOrBlank()) {
                     Log.e("AEMET", "Intento $intento: estado != 200 o 'datos' vacío (estado=${metaObj.estado})")
@@ -120,7 +116,7 @@ object jsonApi {
                     }
                 }
 
-                // === Paso 2: pedimos JSON real de observaciones ===
+                //pedimos json
                 val urlDatos = metaObj.datos!!
                 Log.d("AEMET_URL_DATOS", urlDatos)
                 val requestDatos = Request.Builder()
@@ -128,7 +124,7 @@ object jsonApi {
                     .get()
                     .build()
 
-                // Intento inicial
+                //probamos
                 val dataResponse: Response = try {
                     client.newCall(requestDatos).execute()
                 } catch (e: EOFException) {
@@ -160,7 +156,7 @@ object jsonApi {
                     }
                 }
 
-                // bodyDatos = ARRAY JSON de ObservacionEstacion[]
+
                 val listType = com.google.gson.reflect.TypeToken
                     .getParameterized(List::class.java, ObservacionEstacion::class.java)
                     .type
@@ -178,7 +174,7 @@ object jsonApi {
                     }
                 }
 
-                // Devolvemos la primera (más reciente) y salimos
+
                 return@withContext listaObservaciones.first()
 
             } catch (e: Exception) {
@@ -192,7 +188,7 @@ object jsonApi {
             }
         }
 
-        // Si falló ambos intentos:
+        //si fallan todos los intentos damos null
         null
     }
 

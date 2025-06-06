@@ -84,14 +84,14 @@ fun ScreenMain(
     navController: NavController,
     vm: AuthViewModel = viewModel()
 ) {
-    // Inicializamos el JSON de estaciones al entrar en la pantalla
+    // iniciamos el json al entrar a la pantalla
     val context = LocalContext.current
     jsonApi.initData(context)
 
     val drawerState = rememberDrawerState(DrawerValue.Closed)
     val scope = rememberCoroutineScope()
 
-    // —— 1) Estados para datos de localidad 1 ——
+    //estados localidad 1
     var temp1      by remember { mutableStateOf("--") }
     var humedad1   by remember { mutableStateOf("--") }
     var vientoVel1 by remember { mutableStateOf("--") }
@@ -99,7 +99,7 @@ fun ScreenMain(
     var sensT1     by remember { mutableStateOf("--") }
     var horaObs1   by remember { mutableStateOf("--") }
 
-    // —— 2) Estados para datos de localidad 2 ——
+    //estados localidad 2
     var temp2      by remember { mutableStateOf("--") }
     var humedad2   by remember { mutableStateOf("--") }
     var vientoVel2 by remember { mutableStateOf("--") }
@@ -107,7 +107,7 @@ fun ScreenMain(
     var sensT2     by remember { mutableStateOf("--") }
     var horaObs2   by remember { mutableStateOf("--") }
 
-    // —— 3) Estados para la primera y segunda búsqueda/Dropdown ——
+    //estados para la primera y segunda busqueda
     var expanded1        by remember { mutableStateOf(false) }
     var selectedLocal1   by remember { mutableStateOf("") }
     var selectedFeature1 by remember { mutableStateOf<Feature?>(null) }
@@ -116,23 +116,23 @@ fun ScreenMain(
     var selectedLocal2   by remember { mutableStateOf("") }
     var selectedFeature2 by remember { mutableStateOf<Feature?>(null) }
 
-    // —— 4) Estado para mostrar indicador de “Loading” mientras se obtienen las dos estaciones ——
+    //loadin para mientras busca los datos
     var loading by remember { mutableStateOf(false) }
 
-    // Scroll State para contenido desplazable
+    // scroll para que sea dsplazable
     val scrollState = rememberScrollState()
 
-    // *** BOX que pinta TODO el fondo de azul y aplica padding de system bars ***
+
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Styles.color_main)    //  <-- Pintar TODO el fondo
-            .systemBarsPadding()              //  <-- Espacio para status bar + nav bar
+            .background(Styles.color_main)
+            .systemBarsPadding()
     ) {
         ModalNavigationDrawer(
             drawerState = drawerState,
             drawerContent = {
-                // ———————————————— DRAWER ORIGINAL ————————————————
+
                 ModalDrawerSheet(modifier = Modifier.fillMaxWidth(0.5f)) {
                     Column(Modifier.fillMaxSize()) {
                         // Cabecera con logo
@@ -150,7 +150,7 @@ fun ScreenMain(
                             )
                         }
 
-                        // Botón “Cuenta de usuario”
+                        //boton cuenta usuario
                         Row(
                             Modifier
                                 .fillMaxWidth()
@@ -159,14 +159,14 @@ fun ScreenMain(
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            ElevatedButton(onClick = { /* navegar a “Mi cuenta” */ }) {
+                            ElevatedButton(onClick = { /*cuenta de usuario*/ }) {
                                 Icon(Icons.Filled.AccountCircle, contentDescription = null)
                                 Spacer(modifier = Modifier.width(15.dp))
                                 TextParrafo("Cuenta de usuario", Styles.text_large)
                             }
                         }
 
-                        // Botón “Ajustes”
+                        // Botón Ajustes
                         Row(
                             Modifier
                                 .fillMaxWidth()
@@ -182,7 +182,7 @@ fun ScreenMain(
                             }
                         }
 
-                        // Botón “Logout”
+                        // Boton Logout
                         Row(
                             Modifier
                                 .fillMaxWidth()
@@ -200,10 +200,10 @@ fun ScreenMain(
                 }
             }
         ) {
-            // ———————————————— CONTENIDO PRINCIPAL ————————————————
+           //contenido principal
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
-                containerColor = Color.Transparent,  // <-- el Scaffold no pinta fondo blanco
+                containerColor = Color.Transparent,
                 topBar = {
                     TopAppBar(
                         title = {},
@@ -217,7 +217,7 @@ fun ScreenMain(
                     )
                 }
             ) { innerPadding ->
-                // — El contenido va dentro de esta Column con scroll —
+
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -225,7 +225,7 @@ fun ScreenMain(
                         .padding(innerPadding)
                         .padding(vertical = 16.dp) // espacio arriba/abajo
                 ) {
-                    // —— A) Logo central superior ——
+                    //logo supertior
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -239,14 +239,14 @@ fun ScreenMain(
                         )
                     }
 
-                    // —— B) Dos dropdowns “Busca localidad 1” y “Busca localidad 2” ——
+                    //dropdowns localidad 1 y localidad 2
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // ======== BUSCA LOCALIDAD 1 ========
+                        //localidad 1 buscar
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Busca localidad 1",
@@ -300,10 +300,10 @@ fun ScreenMain(
                             }
                         }
 
-                        // Espacio entre los dos dropdowns
+                        //espacio entre los dropdown
                         Spacer(modifier = Modifier.width(16.dp))
 
-                        // ======== BUSCA LOCALIDAD 2 ========
+                        //localidad2
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
                                 text = "Busca localidad 2",
@@ -360,7 +360,7 @@ fun ScreenMain(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // —— C) Botón “Comparar tiempo” centralizado ——
+                   //boton para comparar el tiempo de las dos localidades
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -369,10 +369,10 @@ fun ScreenMain(
                     ) {
                         ElevatedButton(
                             onClick = {
-                                // —— Al pulsar “Comparar tiempo”, activamos loading y lanzamos corrutina ——
+                                //activamos loading y courutinas al darle al comparar tiempo
                                 loading = true
                                 CoroutineScope(Dispatchers.IO).launch {
-                                    // ————— LOCALIDAD 1 —————
+                                    //localidad1 conexion apiKey
                                     selectedFeature1?.let { f1 ->
                                         val id1 = f1.properties.INDICATIVO
                                         val obs1: ObservacionEstacion? =
@@ -417,7 +417,7 @@ fun ScreenMain(
                                         }
                                     }
 
-                                    // ————— LOCALIDAD 2 —————
+                                    //localidad2
                                     selectedFeature2?.let { f2 ->
                                         val id2 = f2.properties.INDICATIVO
                                         val obs2: ObservacionEstacion? =
@@ -462,11 +462,11 @@ fun ScreenMain(
                                         }
                                     }
 
-                                    // —— Tras descargar ambas, desactivamos loading ——
+                                    //descargamos ambas y activamos el cargando
                                     launch(Dispatchers.Main) {
                                         loading = false
 
-                                        // Guardar la consulta en Firestore
+                                        //guardar consulta en firestore
                                         val userId = vm.user.value?.uid
                                         if (userId != null) {
                                             val datosConsulta = mapOf(
@@ -479,7 +479,7 @@ fun ScreenMain(
                                             )
 
                                             com.example.climbingteam.repository.ConsultaRepository
-                                                .guardarConsulta(userId, datosConsulta)
+                                                .guardarConsulta( datosConsulta)
                                         }
                                     }
                                 }
@@ -491,7 +491,7 @@ fun ScreenMain(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // —— BOTÓN “Ver historial” —— Justo después del botón “Comparar tiempo”
+                    //boton historial
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -507,14 +507,14 @@ fun ScreenMain(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // —— D) Dos tarjetas con los resultados uno al lado del otro ——
+                    //las dos tarjetas con los resultados uno al lado de otro
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp),
                         horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // —— TARJETA IZQUIERDA —— (Localidad 1)
+                        //izq localidad 1
                         ElevatedCard(
                             modifier = Modifier.weight(1f)
                         ) {
@@ -536,7 +536,7 @@ fun ScreenMain(
                             }
                         }
 
-                        // —— TARJETA DERECHA —— (Localidad 2)
+                        //derecha localidad 2
                         ElevatedCard(
                             modifier = Modifier.weight(1f)
                         ) {
@@ -559,11 +559,11 @@ fun ScreenMain(
                         }
                     }
 
-                    // —— E) Un poco de espacio para empujar hacia arriba si sobra espacio ——
+
                     Spacer(modifier = Modifier.height(24.dp))
                 }
 
-                // —— Overlay de “Loading” que aparece por encima de todo el contenido mientras loading == true ——
+                //overlay de el loading
                 if (loading) {
                     Box(
                         modifier = Modifier
@@ -579,68 +579,3 @@ fun ScreenMain(
     }
 }
 
-@Composable
-fun MainBotbar() {
-    BottomAppBar(containerColor = Styles.color_tertiary) {
-        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-            Column(
-                modifier = Modifier.weight(0.30f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    Icons.Filled.ArrowBackIosNew,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp)
-                )
-            }
-            Column(
-                modifier = Modifier.weight(0.05f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Divider(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp),
-                    color = Color.DarkGray
-                )
-            }
-            Column(
-                modifier = Modifier.weight(0.30f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    Icons.Filled.DateRange,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp)
-                )
-            }
-            Column(
-                modifier = Modifier.weight(0.05f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Divider(
-                    modifier = Modifier
-                        .fillMaxHeight()
-                        .width(1.dp),
-                    color = Color.DarkGray
-                )
-            }
-            Column(
-                modifier = Modifier.weight(0.30f),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    Icons.Filled.AccountCircle,
-                    contentDescription = null,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(24.dp)
-                )
-            }
-        }
-    }
-}

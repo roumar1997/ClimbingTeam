@@ -1,5 +1,6 @@
 package com.example.climbingteam.viewmodels
 
+import android.provider.ContactsContract.CommonDataKinds.Email
 import androidx.lifecycle.ViewModel
 import com.example.climbingteam.repository.ConsultaRepository
 import com.google.firebase.auth.FirebaseAuth
@@ -36,6 +37,7 @@ class AuthViewModel : ViewModel() {
             .addOnSuccessListener {
                 _user.value = auth.currentUser
                 onSucces()
+                ConsultaRepository.CreateUser(email)
             }
             .addOnFailureListener{
                 onError(it.localizedMessage)
@@ -43,10 +45,13 @@ class AuthViewModel : ViewModel() {
     }
 // consultar repositorio
 
-    fun guardarConsultaClima(datos: Map<String, Any>) {
+   suspend fun guardarConsultaClima(datos: Map<String, Any>) {
         val userId = auth.currentUser?.uid ?: return
-        ConsultaRepository.guardarConsulta(userId, datos)
+        ConsultaRepository.guardarConsulta(datos)
     }
+
+
+
 
 
 }
