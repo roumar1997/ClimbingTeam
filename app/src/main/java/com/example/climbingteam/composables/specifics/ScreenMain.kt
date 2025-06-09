@@ -74,6 +74,7 @@ import com.example.climbingteam.ui.Styles
 import com.example.climbingteam.viewmodels.AuthViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.Locale
 
@@ -376,7 +377,7 @@ fun ScreenMain(
                                     selectedFeature1?.let { f1 ->
                                         val id1 = f1.properties.INDICATIVO
                                         val obs1: ObservacionEstacion? =
-                                            jsonApi.consultarObservacionConvencional(id1, ApiConnector.apiKey)
+                                            jsonApi.obtenerObservacionHastaExito(id1, ApiConnector.apiKey)
 
                                         if (obs1 == null) {
                                             launch(Dispatchers.Main) {
@@ -406,6 +407,8 @@ fun ScreenMain(
                                             val ho1 = obs1.getFechaDateTime()
                                                 ?.toLocalTime()?.toString() ?: "--"
 
+
+
                                             launch(Dispatchers.Main) {
                                                 temp1 = t1
                                                 humedad1 = h1
@@ -421,7 +424,7 @@ fun ScreenMain(
                                     selectedFeature2?.let { f2 ->
                                         val id2 = f2.properties.INDICATIVO
                                         val obs2: ObservacionEstacion? =
-                                            jsonApi.consultarObservacionConvencional(id2, ApiConnector.apiKey)
+                                            jsonApi.obtenerObservacionHastaExito(id2, ApiConnector.apiKey)
 
                                         if (obs2 == null) {
                                             launch(Dispatchers.Main) {
@@ -578,4 +581,5 @@ fun ScreenMain(
         }
     }
 }
+
 

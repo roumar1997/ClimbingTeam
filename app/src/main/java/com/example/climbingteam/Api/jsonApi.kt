@@ -5,6 +5,7 @@ import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -20,7 +21,7 @@ data class FeatureCollection(
 data class Feature(
     val type: String,
     val properties: Properties,
-    val geometry: Geometry
+    val geometry: Geometry  //se usó en una funcion anterior
 )
 
 data class Properties(
@@ -53,12 +54,17 @@ object jsonApi {
         estaciones = gson.fromJson(json, FeatureCollection::class.java)
     }
 
-    /** Convierte Date a formato “yyyy-MM-dd'T'HH:mm:ss'UTC'” */
-    fun formatDateToUTCString(date: java.util.Date): String {
-        val utcDateTime = date.toInstant().atOffset(java.time.ZoneOffset.UTC)
-        val formatter =
-            java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'UTC'")
-        return utcDateTime.format(formatter)
+    suspend fun obtenerObservacionHastaExito(idema: String, apiKey: String): ObservacionEstacion? {
+        var resultado: ObservacionEstacion? = null
+        var intentos = 0
+        while (resultado == null && intentos < 10) {
+            resultado = jsonApi.consultarObservacionConvencional(idema, apiKey)
+            if (resultado == null) {
+                delay(500)
+            }
+            intentos++
+        }
+        return resultado
     }
 
 
@@ -71,8 +77,8 @@ object jsonApi {
             "https://opendata.aemet.es/opendata/api/observacion/convencional/datos/estacion/$idema?api_key=$apiKey"
         Log.d("AEMET_URL_META", urlMeta)
 
-       //repite dos veces por que no siempre da los datos
-        repeat(2) { intento ->
+       //repite 4 veces por que no siempre da los datos
+        repeat(4) { intento ->
             try {
                 //pedimos metadatos
                 val requestMeta = Request.Builder()
