@@ -76,6 +76,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -406,6 +407,7 @@ fun ScreenMain(
                                                 ?: "--"
                                             val ho1 = obs1.getFechaDateTime()
                                                 ?.toLocalTime()?.toString() ?: "--"
+
 
 
 

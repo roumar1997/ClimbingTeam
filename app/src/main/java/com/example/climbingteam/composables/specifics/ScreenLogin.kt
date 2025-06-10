@@ -46,6 +46,7 @@ import com.example.climbingteam.ui.Mods.fillMax
 import com.example.climbingteam.ui.Styles
 import com.example.climbingteam.viewmodels.AuthViewModel
 
+
 //@Preview
 @Composable
 fun ScreenLogin(

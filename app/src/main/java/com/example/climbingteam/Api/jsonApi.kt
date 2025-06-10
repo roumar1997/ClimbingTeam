@@ -194,7 +194,7 @@ object jsonApi {
             }
         }
 
-        //si fallan todos los intentos damos null
+        //si fallan todos los intentos damos nullo
         null
     }
 

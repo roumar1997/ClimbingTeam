@@ -6,15 +6,7 @@ import java.time.OffsetDateTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.pow
 
-/**
- * Mapea cada objeto dentro del array que AEMET devuelve en "observación convencional".
- * Ahora la API ha cambiado nombres de campos:
- *  - “fint” en lugar de “fecha”
- *  - “ta”              → temperatura (idem antes)
- *  - “hr” en lugar de “hu”              → humedad en %
- *  - “vv” en lugar de “ff”              → velocidad de viento en km/h
- *  - “dv” nuevo campo                  → dirección del viento en grados
- */
+//mapeo completo de los metadatos de aemet
 data class ObservacionEstacion(
     @SerializedName("idema") val idema: String,
     @SerializedName("fint") val fechaRaw: String,      // fecha en formato "2025-06-04T06:00:00+0000"
@@ -23,10 +15,7 @@ data class ObservacionEstacion(
     @SerializedName("vv") val vientoVelocidad: Double?,// velocidad del viento en km/h
     @SerializedName("dv") val vientoDireccion: Double? // dirección del viento en grados
 ) {
-    /**
-     * Convierte “fint” (p.ej. "2025-06-04T06:00:00+0000") a OffsetDateTime.
-     * Luego, si quieres, puedes extraer la hora con toLocalTime().
-     */
+    //la hora, da fallo por que aemet no permite pasarlo a formato 24horas aunque probé todos los date_time posibles
     fun getFechaDateTime(): OffsetDateTime? = try {
         // El sufijo “+0000” no es ISO estándar; lo convertimos a “Z”
         val iso = fechaRaw.removeSuffix("+0000") + "Z"
@@ -35,22 +24,19 @@ data class ObservacionEstacion(
         null
     }
 
-    /** Temperatura como Double (null si no se puede parsear) */
+    //temperatura, le pasa igual que a humedad
     fun getTempDouble(): Double? = temperatura
 
-    /** Humedad en porcentaje, como Double (null si no se pudo parsear) */
+    //humedad en % no siempre se puede parsear
     fun getHumedadDouble(): Double? = humedad
 
-    /** Velocidad de viento en km/h */
+   //velocidad del viento
     fun getVelVientoDouble(): Double? = vientoVelocidad
 
-    /** Dirección del viento en grados (0=N, 90=E, 180=S, 270=O) */
+   //direccion del viento
     fun getDirVientoGrados(): Double? = vientoDireccion
 
-    /**
-     * (Opcional) Convierte grados a palabras (N, NE, E, SE, S, SW, W, NW).
-     * Si prefieres mostrar el valor en grados, puedes no usar esto.
-     */
+
     fun getDirVientoCardinal(): String? {
         val deg = vientoDireccion ?: return null
         return when {
@@ -96,7 +82,7 @@ data class ObservacionEstacion(
                                 0.000003582 * t2 * rh2
                         )
             }
-
+            // 3) Entre 10 y 27°C: devolvemos T sin cambios
             else -> Tiempo
         }
     }
