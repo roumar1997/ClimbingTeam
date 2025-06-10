@@ -8,15 +8,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.climbingteam.repository.ConsultaRepository
 import com.example.climbingteam.ui.Styles
 import com.example.climbingteam.viewmodels.AuthViewModel
-import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.filterNotNull
+
 
 @Composable
 fun HistorialScreen(
@@ -55,11 +53,26 @@ fun HistorialScreen(
                 items(consultas) { item ->
                     ElevatedCard {
                         Column(modifier = Modifier.padding(12.dp)) {
-                            Text("Sector: ${item["sector"] ?: "--"}", style = Styles.textStyleMedium)
-                            Text("Temperatura: ${item["temperatura"] ?: "--"}", style = Styles.textStyleMedium)
-                            Text("Humedad: ${item["humedad"] ?: "--"}", style = Styles.textStyleMedium)
-                            Text("Viento: ${item["viento"] ?: "--"}", style = Styles.textStyleMedium)
-                            Text("Sensación térmica: ${item["sensacion_termica"] ?: "--"}", style = Styles.textStyleMedium)
+                            Text(
+                                "Sector: ${item["sector"] ?: "--"}",
+                                style = Styles.textStyleMedium
+                            )
+                            Text(
+                                "Temperatura: ${item["temperatura"] ?: "--"}",
+                                style = Styles.textStyleMedium
+                            )
+                            Text(
+                                "Humedad: ${item["humedad"] ?: "--"}",
+                                style = Styles.textStyleMedium
+                            )
+                            Text(
+                                "Viento: ${item["viento"] ?: "--"}",
+                                style = Styles.textStyleMedium
+                            )
+                            Text(
+                                "Sensación térmica: ${item["sensacion_termica"] ?: "--"}",
+                                style = Styles.textStyleMedium
+                            )
                         }
                     }
                 }

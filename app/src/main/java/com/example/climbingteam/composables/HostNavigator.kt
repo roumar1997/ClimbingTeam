@@ -16,13 +16,16 @@ fun HostNavigator(vm: AuthViewModel) {
 
     val navController = rememberNavController()
 
-    NavHost(navController, startDestination = if (vm.user.collectAsState().value != null) "main" else "login") {
-        composable("login"){
-            ScreenLogin(navController=navController, vm= vm )
+    NavHost(
+        navController,
+        startDestination = if (vm.user.collectAsState().value != null) "main" else "login"
+    ) {
+        composable("login") {
+            ScreenLogin(navController = navController, vm = vm)
         }
 
         composable("main") {
-            ScreenMain(navController= navController, vm=vm)
+            ScreenMain(navController = navController, vm = vm)
         }
 
         composable("historial") {

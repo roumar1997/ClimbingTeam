@@ -2,16 +2,13 @@
 package com.example.climbingteam.composables.specifics
 
 import android.annotation.SuppressLint
-import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -23,13 +20,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountCircle
-import androidx.compose.material.icons.filled.ArrowBackIosNew
-import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Divider
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -63,10 +56,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.PopupProperties
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.climbingteam.Api.ApiConnector
-import com.example.climbingteam.Api.Feature
-import com.example.climbingteam.Api.jsonApi
-import com.example.climbingteam.Api.ObservacionEstacion
+import com.example.climbingteam.api.ApiConnector
+import com.example.climbingteam.api.Feature
+import com.example.climbingteam.api.jsonApi
+import com.example.climbingteam.api.ObservacionEstacion
 import com.example.climbingteam.R
 import com.example.climbingteam.composables.generals.TextParrafo
 import com.example.climbingteam.drawVerticalScrollbar
@@ -74,9 +67,7 @@ import com.example.climbingteam.ui.Styles
 import com.example.climbingteam.viewmodels.AuthViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.time.format.DateTimeFormatter
 import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -94,28 +85,28 @@ fun ScreenMain(
     val scope = rememberCoroutineScope()
 
     //estados localidad 1
-    var temp1      by remember { mutableStateOf("--") }
-    var humedad1   by remember { mutableStateOf("--") }
+    var temp1 by remember { mutableStateOf("--") }
+    var humedad1 by remember { mutableStateOf("--") }
     var vientoVel1 by remember { mutableStateOf("--") }
     var vientoDir1 by remember { mutableStateOf("--") }
-    var sensT1     by remember { mutableStateOf("--") }
-    var horaObs1   by remember { mutableStateOf("--") }
+    var sensT1 by remember { mutableStateOf("--") }
+    var horaObs1 by remember { mutableStateOf("--") }
 
     //estados localidad 2
-    var temp2      by remember { mutableStateOf("--") }
-    var humedad2   by remember { mutableStateOf("--") }
+    var temp2 by remember { mutableStateOf("--") }
+    var humedad2 by remember { mutableStateOf("--") }
     var vientoVel2 by remember { mutableStateOf("--") }
     var vientoDir2 by remember { mutableStateOf("--") }
-    var sensT2     by remember { mutableStateOf("--") }
-    var horaObs2   by remember { mutableStateOf("--") }
+    var sensT2 by remember { mutableStateOf("--") }
+    var horaObs2 by remember { mutableStateOf("--") }
 
     //estados para la primera y segunda busqueda
-    var expanded1        by remember { mutableStateOf(false) }
-    var selectedLocal1   by remember { mutableStateOf("") }
+    var expanded1 by remember { mutableStateOf(false) }
+    var selectedLocal1 by remember { mutableStateOf("") }
     var selectedFeature1 by remember { mutableStateOf<Feature?>(null) }
 
-    var expanded2        by remember { mutableStateOf(false) }
-    var selectedLocal2   by remember { mutableStateOf("") }
+    var expanded2 by remember { mutableStateOf(false) }
+    var selectedLocal2 by remember { mutableStateOf("") }
     var selectedFeature2 by remember { mutableStateOf<Feature?>(null) }
 
     //loadin para mientras busca los datos
@@ -202,7 +193,7 @@ fun ScreenMain(
                 }
             }
         ) {
-           //contenido principal
+            //contenido principal
             Scaffold(
                 modifier = Modifier.fillMaxSize(),
                 containerColor = Color.Transparent,
@@ -265,7 +256,9 @@ fun ScreenMain(
                                     .fillMaxWidth()
                                     .focusRequester(FocusRequester()),
                                 trailingIcon = {
-                                    androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(expanded1)
+                                    androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(
+                                        expanded1
+                                    )
                                 }
                             )
                             DropdownMenu(
@@ -322,7 +315,9 @@ fun ScreenMain(
                                     .fillMaxWidth()
                                     .focusRequester(FocusRequester()),
                                 trailingIcon = {
-                                    androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(expanded2)
+                                    androidx.compose.material3.ExposedDropdownMenuDefaults.TrailingIcon(
+                                        expanded2
+                                    )
                                 }
                             )
                             DropdownMenu(
@@ -362,7 +357,7 @@ fun ScreenMain(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                   //boton para comparar el tiempo de las dos localidades
+                    //boton para comparar el tiempo de las dos localidades
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -378,7 +373,10 @@ fun ScreenMain(
                                     selectedFeature1?.let { f1 ->
                                         val id1 = f1.properties.INDICATIVO
                                         val obs1: ObservacionEstacion? =
-                                            jsonApi.obtenerObservacionHastaExito(id1, ApiConnector.apiKey)
+                                            jsonApi.obtenerObservacionHastaExito(
+                                                id1,
+                                                ApiConnector.apiKey
+                                            )
 
                                         if (obs1 == null) {
                                             launch(Dispatchers.Main) {
@@ -400,7 +398,8 @@ fun ScreenMain(
                                                 ?.let { v -> String.format("%.1f", v) + " km/h" }
                                                 ?: "--"
                                             val vD1 = obs1.getDirVientoCardinal()
-                                                ?: obs1.getDirVientoGrados()?.let { d -> "${d.toInt()}°" }
+                                                ?: obs1.getDirVientoGrados()
+                                                    ?.let { d -> "${d.toInt()}°" }
                                                 ?: "--"
                                             val s1 = obs1.getSensacionTermica()
                                                 ?.let { s -> String.format("%.1f", s) + " °C" }
@@ -426,7 +425,10 @@ fun ScreenMain(
                                     selectedFeature2?.let { f2 ->
                                         val id2 = f2.properties.INDICATIVO
                                         val obs2: ObservacionEstacion? =
-                                            jsonApi.obtenerObservacionHastaExito(id2, ApiConnector.apiKey)
+                                            jsonApi.obtenerObservacionHastaExito(
+                                                id2,
+                                                ApiConnector.apiKey
+                                            )
 
                                         if (obs2 == null) {
                                             launch(Dispatchers.Main) {
@@ -448,7 +450,8 @@ fun ScreenMain(
                                                 ?.let { v -> String.format("%.1f", v) + " km/h" }
                                                 ?: "--"
                                             val vD2 = obs2.getDirVientoCardinal()
-                                                ?: obs2.getDirVientoGrados()?.let { d -> "${d.toInt()}°" }
+                                                ?: obs2.getDirVientoGrados()
+                                                    ?.let { d -> "${d.toInt()}°" }
                                                 ?: "--"
                                             val s2 = obs2.getSensacionTermica()
                                                 ?.let { s -> String.format("%.1f", s) + " °C" }
@@ -484,7 +487,7 @@ fun ScreenMain(
                                             )
 
                                             com.example.climbingteam.repository.ConsultaRepository
-                                                .guardarConsulta( datosConsulta)
+                                                .guardarConsulta(datosConsulta)
                                         }
                                     }
                                 }
@@ -534,7 +537,10 @@ fun ScreenMain(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Humedad 1: $humedad1", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(4.dp))
-                                TextParrafo("Viento 1: $vientoVel1 ($vientoDir1)", Styles.text_medium)
+                                TextParrafo(
+                                    "Viento 1: $vientoVel1 ($vientoDir1)",
+                                    Styles.text_medium
+                                )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Sens. Térm 1: $sensT1", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -556,7 +562,10 @@ fun ScreenMain(
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Humedad 2: $humedad2", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(4.dp))
-                                TextParrafo("Viento 2: $vientoVel2 ($vientoDir2)", Styles.text_medium)
+                                TextParrafo(
+                                    "Viento 2: $vientoVel2 ($vientoDir2)",
+                                    Styles.text_medium
+                                )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 TextParrafo("Sens. Térm 2: $sensT2", Styles.text_medium)
                                 Spacer(modifier = Modifier.height(8.dp))

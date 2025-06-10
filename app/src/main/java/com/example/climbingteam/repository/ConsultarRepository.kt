@@ -15,9 +15,12 @@ object ConsultaRepository {
 
     private val db = FirebaseFirestore.getInstance()
 
-     suspend fun guardarConsulta( datos: Map<String, Any>) {
+    suspend fun guardarConsulta(datos: Map<String, Any>) {
         val fechaActual = Timestamp.now()
-        val fechaString = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault()).format(fechaActual.toDate())
+        val fechaString = SimpleDateFormat(
+            "yyyy-MM-dd'T'HH:mm:ss",
+            Locale.getDefault()
+        ).format(fechaActual.toDate())
         val userId = getUserId_()
         val docRef = db.collection("usuarios")
             .document(userId)
@@ -52,12 +55,12 @@ object ConsultaRepository {
             }
     }
 
-   suspend fun obtenerUltimasConsultas(
+    suspend fun obtenerUltimasConsultas(
 
         onSuccess: (List<Map<String, Any>>) -> Unit,
         onFailure: (String) -> Unit
     ) {
-       val userId = getUserId_()
+        val userId = getUserId_()
         db.collection("usuarios")
             .document(userId)
             .collection("consultas")
@@ -72,11 +75,11 @@ object ConsultaRepository {
                 onFailure(it.localizedMessage ?: "Error desconocido")
             }
     }
+
     //crear usuario para fireStore
-    fun CreateUser (
+    fun CreateUser(
         email: String
-    )
-    {
+    ) {
         val data = mapOf(
             "email" to email
         )
@@ -85,7 +88,7 @@ object ConsultaRepository {
             .addOnSuccessListener {
                 Log.d("firebase", "usuario creado")
             }
-            .addOnFailureListener {e ->
+            .addOnFailureListener { e ->
                 Log.w("firebase", "error", e)
             }
 
@@ -95,8 +98,9 @@ object ConsultaRepository {
     }
 
 
-   suspend fun getUserId (
-        email: String):String{
+    suspend fun getUserId(
+        email: String
+    ): String {
         val docRef = db.collection("usuarios")
             .whereEqualTo("email", email)
             .get().await()
@@ -104,8 +108,7 @@ object ConsultaRepository {
     }
 
 
-
-    suspend fun getUserId_ ():String{
+    suspend fun getUserId_(): String {
         val auth = FirebaseAuth.getInstance()
         val email = auth.currentUser!!.email
         return ConsultaRepository.getUserId(email!!)

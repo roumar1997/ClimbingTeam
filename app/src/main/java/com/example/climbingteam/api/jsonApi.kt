@@ -1,6 +1,5 @@
 // src/main/kotlin/com/example/climbingteam/Api/jsonApi.kt
-package com.example.climbingteam.Api
-
+package com.example.climbingteam.api
 import android.content.Context
 import android.util.Log
 import com.google.gson.Gson
@@ -11,11 +10,8 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.Response
 import java.io.EOFException
-
 data class FeatureCollection(
-    val type: String,
-    val name: String,
-    val features: List<Feature>
+    val type: String, val name: String, val features: List<Feature>
 )
 
 data class Feature(
@@ -37,8 +33,7 @@ data class Properties(
 )
 
 data class Geometry(
-    val type: String,
-    val coordinates: List<Double>
+    val type: String, val coordinates: List<Double>
 )
 
 object jsonApi {
@@ -48,8 +43,7 @@ object jsonApi {
 
     /** Carga el GeoJSON de estaciones desde “assets/Estaciones_Completas.geojson” */
     fun initData(context: Context) {
-        json = context.assets.open("Estaciones_Completas.geojson")
-            .bufferedReader()
+        json = context.assets.open("Estaciones_Completas.geojson").bufferedReader()
             .use { it.readText() }
         estaciones = gson.fromJson(json, FeatureCollection::class.java)
     }
@@ -69,26 +63,25 @@ object jsonApi {
 
 
     suspend fun consultarObservacionConvencional(
-        idema: String,
-        apiKey: String
+        idema: String, apiKey: String
     ): ObservacionEstacion? = withContext(Dispatchers.IO) {
         val client = OkHttpClient()
         val urlMeta =
             "https://opendata.aemet.es/opendata/api/observacion/convencional/datos/estacion/$idema?api_key=$apiKey"
         Log.d("AEMET_URL_META", urlMeta)
 
-       //repite 4 veces por que no siempre da los datos
+        //repite 4 veces por que no siempre da los datos
         repeat(4) { intento ->
             try {
                 //pedimos metadatos
-                val requestMeta = Request.Builder()
-                    .url(urlMeta)
-                    .get()
-                    .build()
+                val requestMeta = Request.Builder().url(urlMeta).get().build()
 
                 val metaResponse: Response = client.newCall(requestMeta).execute()
                 if (metaResponse.code != 200) {
-                    Log.e("AEMET", "Intento $intento: error en petición meta: HTTP ${metaResponse.code}")
+                    Log.e(
+                        "AEMET",
+                        "Intento $intento: error en petición meta: HTTP ${metaResponse.code}"
+                    )
                     metaResponse.close()
                     if (intento == 0) {
                         Thread.sleep(500)
@@ -113,7 +106,10 @@ object jsonApi {
                 //losdatos y metadatos
                 val metaObj = gson.fromJson(bodyMeta, MetaResponse::class.java)
                 if (metaObj.estado != 200 || metaObj.datos.isNullOrBlank()) {
-                    Log.e("AEMET", "Intento $intento: estado != 200 o 'datos' vacío (estado=${metaObj.estado})")
+                    Log.e(
+                        "AEMET",
+                        "Intento $intento: estado != 200 o 'datos' vacío (estado=${metaObj.estado})"
+                    )
                     if (intento == 0) {
                         Thread.sleep(500)
                         return@repeat
@@ -125,22 +121,25 @@ object jsonApi {
                 //pedimos json
                 val urlDatos = metaObj.datos!!
                 Log.d("AEMET_URL_DATOS", urlDatos)
-                val requestDatos = Request.Builder()
-                    .url(urlDatos)
-                    .get()
-                    .build()
+                val requestDatos = Request.Builder().url(urlDatos).get().build()
 
                 //probamos
                 val dataResponse: Response = try {
                     client.newCall(requestDatos).execute()
                 } catch (e: EOFException) {
-                    Log.w("AEMET", "Intento $intento: EOFException al leer datos. Reintentando en 500 ms…")
+                    Log.w(
+                        "AEMET",
+                        "Intento $intento: EOFException al leer datos. Reintentando en 500 ms…"
+                    )
                     Thread.sleep(500)
                     client.newCall(requestDatos).execute()
                 }
 
                 if (dataResponse.code != 200) {
-                    Log.e("AEMET", "Intento $intento: error en petición datos finales: HTTP ${dataResponse.code}")
+                    Log.e(
+                        "AEMET",
+                        "Intento $intento: error en petición datos finales: HTTP ${dataResponse.code}"
+                    )
                     dataResponse.close()
                     if (intento == 0) {
                         Thread.sleep(500)
@@ -163,9 +162,10 @@ object jsonApi {
                 }
 
 
-                val listType = com.google.gson.reflect.TypeToken
-                    .getParameterized(List::class.java, ObservacionEstacion::class.java)
-                    .type
+                val listType = com.google.gson.reflect.TypeToken.getParameterized(
+                        List::class.java,
+                        ObservacionEstacion::class.java
+                    ).type
 
                 val listaObservaciones: List<ObservacionEstacion> =
                     gson.fromJson(bodyDatos, listType)
@@ -199,9 +199,6 @@ object jsonApi {
     }
 
     private data class MetaResponse(
-        val descripcion: String?,
-        val estado: Int,
-        val metadatos: String?,
-        val datos: String?
+        val descripcion: String?, val estado: Int, val metadatos: String?, val datos: String?
     )
 }

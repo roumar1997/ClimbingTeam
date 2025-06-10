@@ -1,5 +1,5 @@
 // src/main/kotlin/com/example/climbingteam/Api/ObservacionEstacion.kt
-package com.example.climbingteam.Api
+package com.example.climbingteam.api
 
 import com.google.gson.annotations.SerializedName
 import java.time.OffsetDateTime
@@ -30,10 +30,10 @@ data class ObservacionEstacion(
     //humedad en % no siempre se puede parsear
     fun getHumedadDouble(): Double? = humedad
 
-   //velocidad del viento
+    //velocidad del viento
     fun getVelVientoDouble(): Double? = vientoVelocidad
 
-   //direccion del viento
+    //direccion del viento
     fun getDirVientoGrados(): Double? = vientoDireccion
 
 
@@ -41,49 +41,49 @@ data class ObservacionEstacion(
         val deg = vientoDireccion ?: return null
         return when {
             deg < 22.5 || deg >= 337.5 -> "N"
-            deg < 67.5  -> "NE"
+            deg < 67.5 -> "NE"
             deg < 112.5 -> "E"
             deg < 157.5 -> "SE"
             deg < 202.5 -> "S"
             deg < 247.5 -> "SW"
             deg < 292.5 -> "W"
-            else        -> "NW"
+            else -> "NW"
         }
     }
-
-
 
 
     //calcular sensacion termica aproximada con los metadatos
     //humedad,sensacion termica,etc
     fun getSensacionTermica(): Double? {
-        val Tiempo = getTempDouble() ?: return null
+        val tiempo = getTempDouble() ?: return null
         val hume = getHumedadDouble() ?: return null
         val viento = getVelVientoDouble() ?: return null
 
         return when {
 
-            Tiempo   <= 10.0 && viento > 4.8 -> {
-                13.12 + 0.6215 * Tiempo - 11.37 * viento.pow(0.16) + 0.3965 * Tiempo * viento.pow(0.16)
+            tiempo <= 10.0 && viento > 4.8 -> {
+                13.12 + 0.6215 * tiempo - 11.37 * viento.pow(0.16) + 0.3965 * tiempo * viento.pow(
+                    0.16
+                )
             }
 
-            Tiempo >= 27.0 -> {
-                val t2 = Tiempo * Tiempo
+            tiempo >= 27.0 -> {
+                val t2 = tiempo * tiempo
                 val rh2 = hume * hume
                 (
                         -8.784695 +
-                                1.61139411 * Tiempo +
+                                1.61139411 * tiempo +
                                 2.33854900 * hume -
-                                0.14611605 * Tiempo * hume -
+                                0.14611605 * tiempo * hume -
                                 0.012308094 * t2 -
                                 0.016424828 * rh2 +
                                 0.002211732 * t2 * hume +
-                                0.00072546 * Tiempo * rh2 -
+                                0.00072546 * tiempo * rh2 -
                                 0.000003582 * t2 * rh2
                         )
             }
             // 3) Entre 10 y 27°C: devolvemos T sin cambios
-            else -> Tiempo
+            else -> tiempo
         }
     }
 }

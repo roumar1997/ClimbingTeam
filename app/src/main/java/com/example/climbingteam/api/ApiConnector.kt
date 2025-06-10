@@ -1,4 +1,4 @@
-package com.example.climbingteam.Api
+package com.example.climbingteam.api
 
 object ApiConnector {
     const val apiKey = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJyb3VtYXIxOTk3QGdtYWlsLmNvbSIsImp0aSI6ImI0MDNjMjY1LWYyYTctNDFmNy1iNjJhLWNlNzliZjQyYmQzMyIsImlzcyI6IkFFTUVUIiwiaWF0IjoxNzQyMzE3Njg0LCJ1c2VySWQiOiJiNDAzYzI2NS1mMmE3LTQxZjctYjYyYS1jZTc5YmY0MmJkMzMiLCJyb2xlIjoiIn0.Iwv8FgaIDzonfCF3ElrVV0AlpCwumtTb5bM9KwQQXM0"
