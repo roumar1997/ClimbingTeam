@@ -466,9 +466,14 @@ private fun ReviewCard(review: ClimbingReview, onViewProfile: (String) -> Unit =
                     contentAlignment = Alignment.Center
                 ) {
                     if (review.userPhotoUrl.isNotEmpty()) {
+                        val photoModel = if (review.userPhotoUrl.startsWith("/")) {
+                            java.io.File(review.userPhotoUrl)
+                        } else {
+                            review.userPhotoUrl
+                        }
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(review.userPhotoUrl)
+                                .data(photoModel)
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Foto de ${review.userName}",

@@ -14,7 +14,7 @@ object ReviewRepository {
 
     suspend fun getReviewsForLocation(locationId: Long): List<ClimbingReview> {
         return try {
-            // Simple query without orderBy to avoid needing a composite index
+            // Simple query without orderBy to avoid needing a composite Firestore index
             val snapshot = reviewsCollection()
                 .whereEqualTo("locationId", locationId)
                 .limit(50)
@@ -44,7 +44,7 @@ object ReviewRepository {
                         comment = doc.getString("comment") ?: ""
                     )
                 } catch (e: Exception) { null }
-            }.sortedByDescending { it.timestamp.toDate() } // Sort in memory instead
+            }.sortedByDescending { it.timestamp.toDate() }
         } catch (e: Exception) {
             android.util.Log.e("ReviewRepo", "Error loading reviews", e)
             emptyList()
@@ -64,6 +64,16 @@ object ReviewRepository {
                 timestamp = Timestamp.now()
             ).toMap()
             reviewsCollection().add(data).await()
+
+            // Update review count in profile
+            try {
+                val newCount = ProfileRepository.countUserReviews(user.uid)
+                val currentProfile = ProfileRepository.getProfile(user.uid)
+                if (currentProfile != null) {
+                    ProfileRepository.saveProfile(currentProfile.copy(reviewCount = newCount))
+                }
+            } catch (_: Exception) {}
+
             true
         } catch (e: Exception) {
             android.util.Log.e("ReviewRepo", "Error submitting review", e)

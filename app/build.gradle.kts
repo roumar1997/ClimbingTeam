@@ -81,6 +81,6 @@ dependencies {
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.6.0")
 
-    // Firebase Storage for profile photos
-    implementation("com.google.firebase:firebase-storage-ktx")
+    // OSMDroid for native map rendering (works on emulator unlike WebView+Leaflet)
+    implementation("org.osmdroid:osmdroid-android:6.1.18")
 }

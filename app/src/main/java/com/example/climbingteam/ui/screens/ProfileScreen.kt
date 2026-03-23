@@ -37,13 +37,15 @@ import com.example.climbingteam.data.UserProfile
 import com.example.climbingteam.repository.ProfileRepository
 import com.example.climbingteam.ui.theme.ClimbingColors
 import kotlinx.coroutines.launch
+import java.io.File
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    userId: String? = null, // null = my profile, else view another user
+    userId: String? = null,
     onBack: () -> Unit
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val isMyProfile = userId == null || userId == ProfileRepository.currentUserId()
 
@@ -51,8 +53,9 @@ fun ProfileScreen(
     var isLoading by remember { mutableStateOf(true) }
     var isSaving by remember { mutableStateOf(false) }
     var showSaved by remember { mutableStateOf(false) }
+    var errorMsg by remember { mutableStateOf<String?>(null) }
 
-    // Editable fields (only used for own profile)
+    // Editable fields
     var displayName by remember { mutableStateOf("") }
     var favoriteSector by remember { mutableStateOf("") }
     var favoriteRockType by remember { mutableStateOf("") }
@@ -63,16 +66,19 @@ fun ProfileScreen(
     var gradeExpanded by remember { mutableStateOf(false) }
     var isUploadingPhoto by remember { mutableStateOf(false) }
 
-    // Photo picker
+    // Photo picker - copies to internal storage
     val photoPickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
     ) { uri: Uri? ->
         if (uri != null) {
             isUploadingPhoto = true
+            errorMsg = null
             scope.launch {
-                val url = ProfileRepository.uploadProfilePhoto(uri)
-                if (url != null) {
-                    photoUrl = url
+                val savedPath = ProfileRepository.saveProfilePhoto(context, uri)
+                if (savedPath != null) {
+                    photoUrl = savedPath
+                } else {
+                    errorMsg = "Error al guardar la foto"
                 }
                 isUploadingPhoto = false
             }
@@ -116,9 +122,10 @@ fun ProfileScreen(
                 .padding(top = 44.dp, bottom = 24.dp)
                 .padding(horizontal = 16.dp)
         ) {
-            Column(horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()) {
-                // Back + title
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.fillMaxWidth()
@@ -152,9 +159,15 @@ fun ProfileScreen(
                         )
                 ) {
                     if (photoUrl.isNotEmpty()) {
+                        // Build the model: if it's a local path use File, otherwise URL string
+                        val imageModel = if (photoUrl.startsWith("/")) {
+                            File(photoUrl)
+                        } else {
+                            photoUrl
+                        }
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(photoUrl)
+                                .data(imageModel)
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "Foto de perfil",
@@ -170,7 +183,6 @@ fun ProfileScreen(
                         )
                     }
 
-                    // Upload overlay
                     if (isUploadingPhoto) {
                         Box(
                             Modifier
@@ -186,7 +198,6 @@ fun ProfileScreen(
                         }
                     }
 
-                    // Camera badge
                     if (isMyProfile && !isUploadingPhoto) {
                         Box(
                             Modifier
@@ -207,7 +218,6 @@ fun ProfileScreen(
 
                 Spacer(Modifier.height(12.dp))
 
-                // Display name or email
                 Text(
                     displayName.ifEmpty { profile?.email?.substringBefore("@") ?: "..." },
                     style = MaterialTheme.typography.titleLarge,
@@ -229,6 +239,16 @@ fun ProfileScreen(
             return
         }
 
+        // Error message
+        if (errorMsg != null) {
+            Text(
+                errorMsg!!,
+                color = ClimbingColors.adverso,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)
+            )
+        }
+
         Spacer(Modifier.height(8.dp))
 
         // Stats row
@@ -246,7 +266,6 @@ fun ProfileScreen(
         Spacer(Modifier.height(16.dp))
 
         if (isMyProfile) {
-            // Editable fields
             Text(
                 "INFORMACIÓN DEL ESCALADOR",
                 style = MaterialTheme.typography.labelSmall,
@@ -266,7 +285,6 @@ fun ProfileScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
-                    // Name
                     OutlinedTextField(
                         value = displayName,
                         onValueChange = { displayName = it },
@@ -279,7 +297,6 @@ fun ProfileScreen(
                         shape = RoundedCornerShape(10.dp)
                     )
 
-                    // Favorite sector
                     OutlinedTextField(
                         value = favoriteSector,
                         onValueChange = { favoriteSector = it },
@@ -292,7 +309,6 @@ fun ProfileScreen(
                         shape = RoundedCornerShape(10.dp)
                     )
 
-                    // Favorite rock type
                     ExposedDropdownMenuBox(
                         expanded = rockTypeExpanded,
                         onExpandedChange = { rockTypeExpanded = it }
@@ -323,7 +339,6 @@ fun ProfileScreen(
                         }
                     }
 
-                    // Max climbing grade
                     ExposedDropdownMenuBox(
                         expanded = gradeExpanded,
                         onExpandedChange = { gradeExpanded = it }
@@ -358,23 +373,29 @@ fun ProfileScreen(
 
             Spacer(Modifier.height(16.dp))
 
-            // Save button
             Button(
                 onClick = {
                     isSaving = true
+                    errorMsg = null
                     scope.launch {
+                        val reviewCount = ProfileRepository.countUserReviews(
+                            ProfileRepository.currentUserId() ?: ""
+                        )
                         val updated = profile?.copy(
                             displayName = displayName,
                             favoriteSector = favoriteSector,
                             favoriteRockType = favoriteRockType,
                             maxClimbingGrade = maxGrade,
-                            photoUrl = photoUrl
+                            photoUrl = photoUrl,
+                            reviewCount = reviewCount
                         ) ?: return@launch
                         val ok = ProfileRepository.saveProfile(updated)
                         isSaving = false
                         if (ok) {
                             profile = updated
                             showSaved = true
+                        } else {
+                            errorMsg = "Error al guardar el perfil"
                         }
                     }
                 },
@@ -395,7 +416,6 @@ fun ProfileScreen(
                 }
             }
 
-            // Saved confirmation
             AnimatedVisibility(visible = showSaved, enter = fadeIn(), exit = fadeOut()) {
                 LaunchedEffect(showSaved) {
                     kotlinx.coroutines.delay(2000)
@@ -409,7 +429,7 @@ fun ProfileScreen(
                 )
             }
         } else {
-            // View-only profile for other users
+            // View-only profile
             Card(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                 shape = RoundedCornerShape(14.dp),

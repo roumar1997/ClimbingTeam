@@ -1,16 +1,19 @@
 package com.example.climbingteam.repository
 
+import android.content.Context
 import android.net.Uri
 import com.example.climbingteam.data.UserProfile
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withContext
+import java.io.File
+import java.util.UUID
 
 object ProfileRepository {
     private val db = FirebaseFirestore.getInstance()
     private val auth = FirebaseAuth.getInstance()
-    private val storage = FirebaseStorage.getInstance()
 
     private fun profilesCollection() = db.collection("profiles")
 
@@ -40,11 +43,21 @@ object ProfileRepository {
     suspend fun getMyProfile(): UserProfile? {
         val uid = auth.currentUser?.uid ?: return null
         val existing = getProfile(uid)
-        if (existing != null) return existing
+        if (existing != null) {
+            // Always refresh review count
+            val count = countUserReviews(uid)
+            return if (count != existing.reviewCount) {
+                val updated = existing.copy(reviewCount = count)
+                saveProfile(updated)
+                updated
+            } else existing
+        }
         // Create default profile
+        val count = countUserReviews(uid)
         val defaultProfile = UserProfile(
             userId = uid,
-            email = auth.currentUser?.email ?: ""
+            email = auth.currentUser?.email ?: "",
+            reviewCount = count
         )
         saveProfile(defaultProfile)
         return defaultProfile
@@ -61,18 +74,56 @@ object ProfileRepository {
         }
     }
 
-    suspend fun uploadProfilePhoto(imageUri: Uri): String? {
+    /**
+     * Copy image from picker URI to app internal storage and save path in Firestore.
+     * This avoids needing Firebase Storage (which requires extra console setup).
+     */
+    suspend fun saveProfilePhoto(context: Context, imageUri: Uri): String? {
+        return withContext(Dispatchers.IO) {
+            try {
+                val uid = auth.currentUser?.uid ?: return@withContext null
+
+                // Create profile photos directory
+                val photosDir = File(context.filesDir, "profile_photos")
+                if (!photosDir.exists()) photosDir.mkdirs()
+
+                // Delete old photo if exists
+                photosDir.listFiles()?.filter { it.name.startsWith(uid) }?.forEach { it.delete() }
+
+                // Copy image to internal storage
+                val extension = "jpg"
+                val photoFile = File(photosDir, "${uid}_${UUID.randomUUID()}.$extension")
+                context.contentResolver.openInputStream(imageUri)?.use { input ->
+                    photoFile.outputStream().use { output ->
+                        input.copyTo(output)
+                    }
+                } ?: return@withContext null
+
+                val localPath = photoFile.absolutePath
+
+                // Update Firestore with local path
+                profilesCollection().document(uid).update("photoUrl", localPath).await()
+
+                localPath
+            } catch (e: Exception) {
+                android.util.Log.e("ProfileRepo", "Error saving photo", e)
+                null
+            }
+        }
+    }
+
+    /**
+     * Count user's reviews from Firestore
+     */
+    suspend fun countUserReviews(userId: String): Int {
         return try {
-            val uid = auth.currentUser?.uid ?: return null
-            val ref = storage.reference.child("profiles/$uid/avatar.jpg")
-            ref.putFile(imageUri).await()
-            val url = ref.downloadUrl.await().toString()
-            // Update photo URL in profile doc
-            profilesCollection().document(uid).update("photoUrl", url).await()
-            url
+            val snapshot = db.collection("reviews")
+                .whereEqualTo("userId", userId)
+                .get()
+                .await()
+            snapshot.size()
         } catch (e: Exception) {
-            android.util.Log.e("ProfileRepo", "Error uploading photo", e)
-            null
+            0
         }
     }
 }
