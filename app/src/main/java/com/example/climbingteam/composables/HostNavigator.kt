@@ -70,7 +70,10 @@ fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel) {
                     DetailScreen(
                         viewModel = weatherVm,
                         slotIndex = slotIndex,
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
+                        onViewProfile = { userId ->
+                            navController.navigate("profile/$userId")
+                        }
                     )
                 }
 
@@ -99,7 +102,19 @@ fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel) {
                             navController.navigate("login") {
                                 popUpTo(0) { inclusive = true }
                             }
+                        },
+                        onNavigateToProfile = {
+                            navController.navigate("profile/me")
                         }
+                    )
+                }
+
+                // Profile screen - "me" for own profile, userId for others
+                composable("profile/{userId}") { backStackEntry ->
+                    val userId = backStackEntry.arguments?.getString("userId")
+                    ProfileScreen(
+                        userId = if (userId == "me") null else userId,
+                        onBack = { navController.popBackStack() }
                     )
                 }
             }
