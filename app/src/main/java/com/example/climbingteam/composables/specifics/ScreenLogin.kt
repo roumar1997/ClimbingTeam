@@ -1,300 +1,358 @@
 package com.example.climbingteam.composables.specifics
 
-import android.graphics.Color
 import android.util.Log
-import androidx.compose.foundation.Image
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.FavoriteBorder
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
-import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.*
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
-import com.example.climbingteam.R
-import com.example.climbingteam.ui.Mods.backMain
-import com.example.climbingteam.ui.Mods.fillMax
-import com.example.climbingteam.ui.Styles
+import com.example.climbingteam.ui.theme.ClimbingColors
 import com.example.climbingteam.viewmodels.AuthViewModel
 
-
-//@Preview
 @Composable
 fun ScreenLogin(
     navController: NavController,
     vm: AuthViewModel = viewModel()
 ) {
+    val showLoginForm = rememberSaveable { mutableStateOf(true) }
+    val error = rememberSaveable { mutableStateOf<String?>(null) }
 
-    //true = login; false = Create
-    val showLoginForm = rememberSaveable {
-        mutableStateOf(true)
-    }
+    // Entrance animation
+    var visible by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) { visible = true }
 
-    val error = rememberSaveable {
-        mutableStateOf<String?>(null)
-    }
-    Surface(
+    val logoScale by animateFloatAsState(
+        targetValue = if (visible) 1f else 0.5f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow),
+        label = "logoScale"
+    )
+    val logoAlpha by animateFloatAsState(
+        targetValue = if (visible) 1f else 0f,
+        animationSpec = tween(600),
+        label = "logoAlpha"
+    )
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(Color(0xFF0D1117), Color(0xFF0F2744), Color(0xFF0D1117)),
+                    startY = 0f, endY = Float.POSITIVE_INFINITY
+                )
+            )
     ) {
+        // Decorative circles
+        Box(
+            modifier = Modifier
+                .size(300.dp)
+                .offset(x = (-80).dp, y = (-80).dp)
+                .background(
+                    Brush.radialGradient(listOf(ClimbingColors.primary.copy(alpha = 0.08f), Color.Transparent)),
+                    shape = RoundedCornerShape(50)
+                )
+        )
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .align(Alignment.BottomEnd)
+                .offset(x = 60.dp, y = 60.dp)
+                .background(
+                    Brush.radialGradient(listOf(Color(0xFF3FB950).copy(alpha = 0.06f), Color.Transparent)),
+                    shape = RoundedCornerShape(50)
+                )
+        )
+
         Column(
-            fillMax
-                .padding()
-                .then(backMain),
+            modifier = Modifier
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
+                .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
+        ) {
+            Spacer(Modifier.height(60.dp))
 
-        )
-        {
-            Row(
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.Bottom
+            // Logo / Icon
+            Box(
+                modifier = Modifier
+                    .graphicsLayer(scaleX = logoScale, scaleY = logoScale, alpha = logoAlpha)
+                    .size(80.dp)
+                    .clip(RoundedCornerShape(24.dp))
+                    .background(
+                        Brush.linearGradient(
+                            listOf(ClimbingColors.primary, Color(0xFF3FB950))
+                        )
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Image(painter = painterResource(R.drawable.applogo), contentDescription = "")
+                Icon(
+                    Icons.Default.Landscape,
+                    contentDescription = null,
+                    tint = Color.White,
+                    modifier = Modifier.size(44.dp)
+                )
             }
 
-            if (showLoginForm.value) {
-                Text("Inicia sesión")
-                UserForm(
-                    isCreateAccount = false
-                )
-                { email, password ->
+            Spacer(Modifier.height(24.dp))
 
-                    Log.d("1", "logueando con $email y $password")
-                    vm.login(email, password, onSucces = {
-                        error.value = null
-                        navController.navigate("compare") {
-                            popUpTo("login") { inclusive = true }
-                        }
-
-                    }, onError = {
-                        Log.d("err_login", it)
-                        error.value = it
-                    })
-                }
-            } else {
-                Text("Crea una cuenta")
-                UserForm(
-                    isCreateAccount = true
-                )
-                { email, password ->
-
-                    Log.d("1", "creando cuenta con $email y $password")
-                    vm.register(email, password, onSucces = {
-                        error.value = null
-                        navController.navigate("compare") {
-                            popUpTo("login") { inclusive = true }
-                        }
-                    }, onError = {
-                        Log.d("err_register", it)
-                        error.value = it
-                    })
+            AnimatedContent(
+                targetState = showLoginForm.value,
+                transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(200)) },
+                label = "titleAnim"
+            ) { isLogin ->
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        if (isLogin) "Bienvenido" else "Crear cuenta",
+                        style = MaterialTheme.typography.headlineMedium,
+                        color = ClimbingColors.textPrimary,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        if (isLogin) "Inicia sesi\u00f3n para continuar" else "Reg\u00edstrate gratis",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = ClimbingColors.textTertiary
+                    )
                 }
             }
 
+            Spacer(Modifier.height(36.dp))
 
-            error.value?.let{
-                Text(it, color = MaterialTheme.colorScheme.error)
+            // Form card
+            AnimatedVisibility(
+                visible = visible,
+                enter = slideInVertically(
+                    initialOffsetY = { it / 2 },
+                    animationSpec = spring(dampingRatio = Spring.DampingRatioLowBouncy, stiffness = Spring.StiffnessMediumLow)
+                ) + fadeIn(tween(500))
+            ) {
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(20.dp),
+                    colors = CardDefaults.cardColors(containerColor = ClimbingColors.cardBackground),
+                    elevation = CardDefaults.cardElevation(8.dp)
+                ) {
+                    Column(modifier = Modifier.padding(24.dp)) {
+                        AnimatedContent(
+                            targetState = showLoginForm.value,
+                            transitionSpec = {
+                                (slideInHorizontally { if (targetState) -it else it } + fadeIn()) togetherWith
+                                (slideOutHorizontally { if (targetState) it else -it } + fadeOut())
+                            },
+                            label = "formAnim"
+                        ) { isLogin ->
+                            ModernUserForm(
+                                isCreateAccount = !isLogin,
+                                onDone = { email, password ->
+                                    if (isLogin) {
+                                        Log.d("Login", "logueando con $email")
+                                        vm.login(email, password, onSucces = {
+                                            error.value = null
+                                            navController.navigate("compare") {
+                                                popUpTo("login") { inclusive = true }
+                                            }
+                                        }, onError = {
+                                            Log.d("err_login", it)
+                                            error.value = it
+                                        })
+                                    } else {
+                                        Log.d("Register", "creando cuenta con $email")
+                                        vm.register(email, password, onSucces = {
+                                            error.value = null
+                                            navController.navigate("compare") {
+                                                popUpTo("login") { inclusive = true }
+                                            }
+                                        }, onError = {
+                                            Log.d("err_register", it)
+                                            error.value = it
+                                        })
+                                    }
+                                }
+                            )
+                        }
+
+                        // Error
+                        AnimatedVisibility(visible = error.value != null) {
+                            error.value?.let {
+                                Spacer(Modifier.height(12.dp))
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .clip(RoundedCornerShape(10.dp))
+                                        .background(ClimbingColors.adverso.copy(alpha = 0.12f))
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(Icons.Default.Warning, null,
+                                        tint = ClimbingColors.adverso, modifier = Modifier.size(18.dp))
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(it, style = MaterialTheme.typography.bodySmall,
+                                        color = ClimbingColors.adverso, lineHeight = 16.sp)
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
+            Spacer(Modifier.height(24.dp))
 
-
-
-
-            Spacer(modifier = Modifier.height(15.dp))
+            // Toggle login / register
             Row(
-
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                val text1 =
-                    if (showLoginForm.value) "¿No tienes cuenta?"
-                    else "¿Ya tienes cuenta?"
-                val text2 =
-                    if (showLoginForm.value) "Registrate"
-                    else "Inicia Sesión"
-                Text(text = text1)
                 Text(
-                    text = text2,
-                    modifier = Modifier
-                        .clickable { showLoginForm.value = !showLoginForm.value }
-                        .padding(start = 5.dp),
-                    color = Styles.color_secondary
+                    if (showLoginForm.value) "\u00bfNo tienes cuenta?" else "\u00bfYa tienes cuenta?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = ClimbingColors.textTertiary
+                )
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    if (showLoginForm.value) "Reg\u00edstrate" else "Inicia sesi\u00f3n",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = ClimbingColors.primary,
+                    fontWeight = FontWeight.SemiBold,
+                    modifier = Modifier.clickable {
+                        showLoginForm.value = !showLoginForm.value
+                        error.value = null
+                    }
                 )
             }
+
+            Spacer(Modifier.height(40.dp))
         }
-
-    }
-
-
-}
-
-@Composable
-fun UserForm(
-    isCreateAccount: Boolean = false,
-    onDone: (String, String) -> Unit = { email, pwd -> }
-) {
-    val email = rememberSaveable {
-        mutableStateOf("")
-    }
-    val password = rememberSaveable {
-        mutableStateOf("")
-    }
-    val passwordVisible = rememberSaveable {
-        mutableStateOf(false)
-    }
-    val valido = remember(email.value, password.value) {
-        email.value.trim().isNotEmpty() &&
-                password.value.trim().isNotEmpty()
-    }
-
-
-    val KeyboardController = LocalSoftwareKeyboardController.current
-    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-        EmailInput(
-            emailState = email
-        )
-        PasswordInput(
-            passwordState = password,
-            labelId = "password",
-            passwordVisible = passwordVisible
-        )
-        SubmitButton(
-            textId = if (isCreateAccount) "crear cuenta" else "login",
-            inputValido = valido
-        ) {
-            onDone(email.value.trim(), password.value.trim())
-            KeyboardController?.hide()
-        }
-        // onDone(email.value.trim(),password.value.trim())
-        //KeyboardController?.hide()
     }
 }
 
 @Composable
-fun SubmitButton(
-    textId: String,
-    inputValido: Boolean,
-    onClic: () -> Unit
-
+private fun ModernUserForm(
+    isCreateAccount: Boolean,
+    onDone: (String, String) -> Unit
 ) {
-    Button(
-        onClick = onClic,
-        enabled = inputValido
-    ) {
-        Text(
-            text = textId,
+    val email = rememberSaveable { mutableStateOf("") }
+    val password = rememberSaveable { mutableStateOf("") }
+    val passwordVisible = rememberSaveable { mutableStateOf(false) }
+    val isValid = remember(email.value, password.value) {
+        email.value.trim().isNotEmpty() && password.value.trim().length >= 6
+    }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        // Email
+        OutlinedTextField(
+            value = email.value,
+            onValueChange = { email.value = it },
+            label = { Text("Email") },
+            leadingIcon = {
+                Icon(Icons.Default.Email, null,
+                    tint = if (email.value.isNotEmpty()) ClimbingColors.primary else ClimbingColors.textTertiary,
+                    modifier = Modifier.size(20.dp))
+            },
+            singleLine = true,
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = ClimbingColors.surfaceVariant,
+                unfocusedContainerColor = ClimbingColors.surfaceVariant,
+                focusedBorderColor = ClimbingColors.primary,
+                unfocusedBorderColor = ClimbingColors.searchBarBorder,
+                focusedLabelColor = ClimbingColors.primary,
+                unfocusedLabelColor = ClimbingColors.textTertiary,
+                cursorColor = ClimbingColors.primary,
+                focusedTextColor = ClimbingColors.textPrimary,
+                unfocusedTextColor = ClimbingColors.textPrimary
+            ),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        // Password
+        OutlinedTextField(
+            value = password.value,
+            onValueChange = { password.value = it },
+            label = { Text("Contrase\u00f1a") },
+            leadingIcon = {
+                Icon(Icons.Default.Lock, null,
+                    tint = if (password.value.isNotEmpty()) ClimbingColors.primary else ClimbingColors.textTertiary,
+                    modifier = Modifier.size(20.dp))
+            },
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
+                    Icon(
+                        if (passwordVisible.value) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                        contentDescription = "Ver contrase\u00f1a",
+                        tint = ClimbingColors.textTertiary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            },
+            singleLine = true,
+            visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
+            colors = OutlinedTextFieldDefaults.colors(
+                focusedContainerColor = ClimbingColors.surfaceVariant,
+                unfocusedContainerColor = ClimbingColors.surfaceVariant,
+                focusedBorderColor = ClimbingColors.primary,
+                unfocusedBorderColor = ClimbingColors.searchBarBorder,
+                focusedLabelColor = ClimbingColors.primary,
+                unfocusedLabelColor = ClimbingColors.textTertiary,
+                cursorColor = ClimbingColors.primary,
+                focusedTextColor = ClimbingColors.textPrimary,
+                unfocusedTextColor = ClimbingColors.textPrimary
+            ),
+            shape = RoundedCornerShape(14.dp),
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Spacer(Modifier.height(4.dp))
+
+        // Submit button with gradient
+        Box(
             modifier = Modifier
-                .padding(5.dp)
-        )
-    }
-
-}
-
-@Composable
-fun PasswordInput(
-    passwordState: MutableState<String>,
-    labelId: String = "Contraseña",
-    passwordVisible: MutableState<Boolean> = remember { mutableStateOf(false) }
-) {
-    val visualTransformation = if (passwordVisible.value) {
-        VisualTransformation.None
-    } else {
-        PasswordVisualTransformation()
-    }
-
-    val icon = if (passwordVisible.value) {
-        Icons.Filled.Favorite // falta b uscar el ojo
-    } else {
-        Icons.Filled.FavoriteBorder // falta buscar el ojo
-    }
-
-    OutlinedTextField(
-        value = passwordState.value,
-        onValueChange = { passwordState.value = it },
-        label = { Text(text = labelId) },
-        singleLine = true,
-        modifier = Modifier
-            .padding(10.dp)
-            .fillMaxWidth(),
-        visualTransformation = visualTransformation,
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Password,
-            imeAction = ImeAction.Done
-        ),
-        trailingIcon = {
-            IconButton(onClick = {
-                passwordVisible.value = !passwordVisible.value
-            }) {
-                Icon(imageVector = icon, contentDescription = "Toggle password visibility")
-            }
-        }
-    )
-}
-
-
-@Composable
-fun EmailInput(
-    emailState: MutableState<String>,
-    labelId: String = "Email"
-) {
-    InputFields(
-        valueState = emailState,
-        labelId = labelId,
-        inputType = KeyboardType.Email
-    )
-}
-
-@Composable
-fun InputFields(
-    valueState: MutableState<String>,
-    labelId: String,
-    isSingleLine: Boolean = true,
-    inputType: KeyboardType
-) {
-    OutlinedTextField(
-        value = valueState.value,
-        onValueChange = { valueState.value = it },
-        label = { Text(text = labelId) },
-        singleLine = isSingleLine,
-
-        modifier = Modifier
-            .padding(bottom = 10.dp, start = 10.dp, end = 10.dp)
-            .fillMaxWidth(),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = inputType,
-
+                .fillMaxWidth()
+                .height(52.dp)
+                .clip(RoundedCornerShape(14.dp))
+                .background(
+                    if (isValid)
+                        Brush.horizontalGradient(listOf(ClimbingColors.primary, Color(0xFF3FB950)))
+                    else
+                        Brush.horizontalGradient(listOf(ClimbingColors.textTertiary, ClimbingColors.textTertiary))
+                )
+                .clickable(enabled = isValid) {
+                    onDone(email.value.trim(), password.value.trim())
+                    keyboardController?.hide()
+                },
+            contentAlignment = Alignment.Center
+        ) {
+            Text(
+                if (isCreateAccount) "Crear cuenta" else "Iniciar sesi\u00f3n",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold
             )
-
-    )
-
+        }
+    }
 }

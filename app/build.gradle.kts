@@ -77,4 +77,10 @@ dependencies {
 
     // DataStore for favorites
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Coil for image loading
+    implementation("io.coil-kt:coil-compose:2.6.0")
+
+    // Firebase Storage for profile photos
+    implementation("com.google.firebase:firebase-storage-ktx")
 }
