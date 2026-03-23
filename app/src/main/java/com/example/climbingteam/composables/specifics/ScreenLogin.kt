@@ -92,7 +92,9 @@ fun ScreenLogin(
                     Log.d("1", "logueando con $email y $password")
                     vm.login(email, password, onSucces = {
                         error.value = null
-                        navController.navigate("main")
+                        navController.navigate("compare") {
+                            popUpTo("login") { inclusive = true }
+                        }
 
                     }, onError = {
                         Log.d("err_login", it)
@@ -109,7 +111,9 @@ fun ScreenLogin(
                     Log.d("1", "creando cuenta con $email y $password")
                     vm.register(email, password, onSucces = {
                         error.value = null
-                        navController.navigate("main")
+                        navController.navigate("compare") {
+                            popUpTo("login") { inclusive = true }
+                        }
                     }, onError = {
                         Log.d("err_register", it)
                         error.value = it

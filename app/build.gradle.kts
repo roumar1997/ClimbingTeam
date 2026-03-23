@@ -75,5 +75,6 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-
+    // DataStore for favorites
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
 }

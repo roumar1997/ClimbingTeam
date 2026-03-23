@@ -4,33 +4,24 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
-import com.example.climbingteam.api.jsonApi
 import com.example.climbingteam.composables.HostNavigator
 import com.example.climbingteam.viewmodels.AuthViewModel
+import com.example.climbingteam.viewmodels.WeatherViewModel
 import com.google.firebase.FirebaseApp
-
 
 class MainActivity : ComponentActivity() {
     private val authViewModel by lazy { AuthViewModel() }
+    private val weatherViewModel by lazy { WeatherViewModel(application) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // lanza firebase, checkea el google-config.json y conecta con la app de firebase
-        FirebaseApp.initializeApp(this);
-
-        jsonApi.initData(this)
+        FirebaseApp.initializeApp(this)
 
         enableEdgeToEdge()
 
         setContent {
-
-            HostNavigator(authViewModel)
-
+            HostNavigator(authViewModel, weatherViewModel)
         }
-
-
     }
 }
-
-
