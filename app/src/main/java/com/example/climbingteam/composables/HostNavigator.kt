@@ -13,10 +13,11 @@ import com.example.climbingteam.ui.components.ClimbingBottomNav
 import com.example.climbingteam.ui.screens.*
 import com.example.climbingteam.ui.theme.ClimbingTeamTheme
 import com.example.climbingteam.viewmodels.AuthViewModel
+import com.example.climbingteam.viewmodels.SectorViewModel
 import com.example.climbingteam.viewmodels.WeatherViewModel
 
 @Composable
-fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel) {
+fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel, sectorVm: SectorViewModel) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "compare"
@@ -25,7 +26,7 @@ fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel) {
     val startDest = if (isLoggedIn) "compare" else "login"
 
     // Routes that show bottom nav
-    val bottomNavRoutes = setOf("compare", "favorites", "map", "settings")
+    val bottomNavRoutes = setOf("compare", "favorites", "sectors", "map", "settings")
     val showBottomNav = currentRoute in bottomNavRoutes
 
     ClimbingTeamTheme {
@@ -88,6 +89,10 @@ fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel) {
                             }
                         }
                     )
+                }
+
+                composable("sectors") {
+                    SectorFinderScreen(viewModel = sectorVm)
                 }
 
                 composable("map") {

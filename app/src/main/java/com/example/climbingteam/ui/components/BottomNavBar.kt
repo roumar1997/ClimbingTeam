@@ -6,6 +6,7 @@ import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Map
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Terrain
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -20,6 +21,7 @@ enum class BottomNavItem(
 ) {
     COMPARE("compare", "Comparar", Icons.Default.CompareArrows),
     FAVORITES("favorites", "Favoritos", Icons.Default.Favorite),
+    SECTORS("sectors", "Sectores", Icons.Default.Terrain),
     MAP("map", "Mapa", Icons.Default.Map),
     SETTINGS("settings", "Ajustes", Icons.Default.Settings)
 }

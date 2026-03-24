@@ -38,7 +38,6 @@ fun CompareScreen(
     val isSearching by viewModel.isSearching.collectAsState()
     val bestIndex by viewModel.bestLocationIndex.collectAsState()
     val favorites by viewModel.favorites.collectAsState()
-    val forecastDays by viewModel.forecastDays.collectAsState()
 
     val scrollState = rememberScrollState()
 
@@ -57,7 +56,7 @@ fun CompareScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp)
+                    .height(100.dp)
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
@@ -68,81 +67,35 @@ fun CompareScreen(
                         )
                     )
             ) {
-                Column(
+                Row(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .padding(horizontal = 20.dp)
                         .padding(top = 48.dp),
-                    verticalArrangement = Arrangement.Top
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                Icons.Default.Landscape,
-                                contentDescription = null,
-                                tint = ClimbingColors.primary,
-                                modifier = Modifier.size(28.dp)
-                            )
-                            Spacer(Modifier.width(8.dp))
-                            Text(
-                                "MeteoMonta\u00f1a",
-                                style = MaterialTheme.typography.headlineSmall,
-                                color = ClimbingColors.textPrimary,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
-
-                        IconButton(onClick = { viewModel.refreshAll() }) {
-                            Icon(
-                                Icons.Default.Refresh,
-                                contentDescription = "Refrescar",
-                                tint = ClimbingColors.textSecondary
-                            )
-                        }
-                    }
-
-                    Spacer(Modifier.height(8.dp))
-
-                    // Forecast days selector
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "Previsi\u00f3n:",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = ClimbingColors.textTertiary
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(
+                            Icons.Default.Landscape,
+                            contentDescription = null,
+                            tint = ClimbingColors.primary,
+                            modifier = Modifier.size(28.dp)
                         )
-                        listOf(3, 7, 10, 14).forEach { days ->
-                            FilterChip(
-                                selected = forecastDays == days,
-                                onClick = { viewModel.setForecastDays(days) },
-                                label = {
-                                    Text(
-                                        "${days}d",
-                                        fontSize = 11.sp,
-                                        fontWeight = if (forecastDays == days) FontWeight.Bold else FontWeight.Normal
-                                    )
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = ClimbingColors.primary.copy(alpha = 0.2f),
-                                    selectedLabelColor = ClimbingColors.primary,
-                                    containerColor = ClimbingColors.surfaceVariant,
-                                    labelColor = ClimbingColors.textTertiary
-                                ),
-                                border = FilterChipDefaults.filterChipBorder(
-                                    borderColor = Color.Transparent,
-                                    selectedBorderColor = ClimbingColors.primary.copy(alpha = 0.3f),
-                                    enabled = true,
-                                    selected = forecastDays == days
-                                ),
-                                modifier = Modifier.height(28.dp)
-                            )
-                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            "MeteoMonta\u00f1a",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = ClimbingColors.textPrimary,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                    IconButton(onClick = { viewModel.refreshAll() }) {
+                        Icon(
+                            Icons.Default.Refresh,
+                            contentDescription = "Refrescar",
+                            tint = ClimbingColors.textSecondary
+                        )
                     }
                 }
             }

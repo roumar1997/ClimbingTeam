@@ -43,7 +43,7 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     val bestLocationIndex: StateFlow<Int?> = _bestLocationIndex.asStateFlow()
 
     // Forecast days
-    private val _forecastDays = MutableStateFlow(7)
+    private val _forecastDays = MutableStateFlow(14)
     val forecastDays: StateFlow<Int> = _forecastDays.asStateFlow()
 
     // Favorites
