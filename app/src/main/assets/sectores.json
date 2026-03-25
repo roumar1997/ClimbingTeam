@@ -1,0 +1,1172 @@
+[
+  {
+    "nombre": "Albarracín",
+    "ubicacion": "Provincia de Teruel, Albarracín",
+    "ccaa": "Aragón",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 40.387874,
+    "lon": -1.406937,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/albarracin"
+  },
+  {
+    "nombre": "Alcañiz",
+    "ubicacion": "Provincia de Teruel, Alcañiz",
+    "ccaa": "Aragón",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 41.06977,
+    "lon": -0.112782,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/alcaniz-arenal | https://climbingaway.fr/fr/site-escalade/alcaniz-barranco-del-ciego | https://climbingaway.fr/fr/site-escalade/alcaniz-cabezo-de-la-jota | https://climbingaway.fr/fr/site-escalade/alcaniz-camineros | https://climbingaway.fr/fr/site-escalade/alcaniz-el-anfibio"
+  },
+  {
+    "nombre": "Almorchón, El (Cieza)",
+    "ubicacion": "Cieza",
+    "ccaa": "Región de Murcia",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 38.238,
+    "lon": -1.421,
+    "fuente": "https://zonasdeescalada.com/page/4/"
+  },
+  {
+    "nombre": "Alos de Balaguer (Alos de Balaguer)",
+    "ubicacion": "Alòs de Balaguer",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 41.856,
+    "lon": 0.944,
+    "fuente": "https://zonasdeescalada.com/page/6/"
+  },
+  {
+    "nombre": "Alquézar (Alquézar)",
+    "ubicacion": "Alquézar",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.173,
+    "lon": 0.083,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Arico Nuevo",
+    "ubicacion": "Tenerife, Arico",
+    "ccaa": "Canarias",
+    "estilo": "Bloque",
+    "roca": "Basalto",
+    "lat": 28.175971,
+    "lon": -16.480345,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/arico-nuevo"
+  },
+  {
+    "nombre": "Barranco El Fuerte (Illar)",
+    "ubicacion": "Íllar",
+    "ccaa": "Andalucía",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 36.957,
+    "lon": -2.636,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Barranco la Madera (Santa Cruz de la Palma)",
+    "ubicacion": "Santa Cruz de La Palma",
+    "ccaa": "Canarias",
+    "estilo": "Vía",
+    "roca": "Volcánica",
+    "lat": 28.683,
+    "lon": -17.764,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "Becedas",
+    "ubicacion": "Provincia de Ávila, Becedas",
+    "ccaa": "Castilla y León",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.409657,
+    "lon": -5.64146,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/becedas"
+  },
+  {
+    "nombre": "Berga (Berga)",
+    "ubicacion": "Berga",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Conglomerado",
+    "lat": 42.101,
+    "lon": 1.846,
+    "fuente": "https://zonasdeescalada.com/page/4/"
+  },
+  {
+    "nombre": "Beuda (Beuda)",
+    "ubicacion": "Beuda",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.211,
+    "lon": 2.69,
+    "fuente": "https://zonasdeescalada.com/page/4/"
+  },
+  {
+    "nombre": "Bielsa",
+    "ubicacion": "Bielsa",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.632,
+    "lon": 0.221,
+    "fuente": "https://zonasdeescalada.com/"
+  },
+  {
+    "nombre": "Buey, El (Jumilla)",
+    "ubicacion": "Jumilla",
+    "ccaa": "Región de Murcia",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 38.477,
+    "lon": -1.326,
+    "fuente": "https://zonasdeescalada.com/page/4/"
+  },
+  {
+    "nombre": "Bujeo, El (Tarifa)",
+    "ubicacion": "Tarifa",
+    "ccaa": "Andalucía",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 36.078,
+    "lon": -5.615,
+    "fuente": "https://zonasdeescalada.com/page/3/"
+  },
+  {
+    "nombre": "Buñol",
+    "ubicacion": "Buñol",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 39.422,
+    "lon": -0.794,
+    "fuente": "https://zonasdeescalada.com/page/7/"
+  },
+  {
+    "nombre": "Cabañas del Castillo (Cabañas del Castillo)",
+    "ubicacion": "Cabañas del Castillo",
+    "ccaa": "Extremadura",
+    "estilo": "Vía",
+    "roca": "Cuarcita",
+    "lat": 39.449,
+    "lon": -5.558,
+    "fuente": "https://zonasdeescalada.com/page/3/"
+  },
+  {
+    "nombre": "Cadira del Bisbe, La (Premiá de Dalt)",
+    "ubicacion": "Premià de Dalt",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 41.497,
+    "lon": 2.34,
+    "fuente": "https://zonasdeescalada.com/page/8/"
+  },
+  {
+    "nombre": "Calcena (Calcena)",
+    "ubicacion": "Calcena",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 41.653,
+    "lon": -1.72,
+    "fuente": "https://zonasdeescalada.com/page/4/"
+  },
+  {
+    "nombre": "Cales Coves (Sant Climent, Menorca)",
+    "ubicacion": "Sant Climent, Menorca",
+    "ccaa": "Islas Baleares",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 39.873,
+    "lon": 4.127,
+    "fuente": "https://zonasdeescalada.com/page/8/"
+  },
+  {
+    "nombre": "Can Boquet",
+    "ubicacion": "Vilassar de Dalt / colinas de Barcelona",
+    "ccaa": "Cataluña",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 41.511418,
+    "lon": 2.337474,
+    "fuente": "https://climbingaway.fr/en/climbing-areas/can-boquet"
+  },
+  {
+    "nombre": "Cañón de Manilva (Manilva)",
+    "ubicacion": "Manilva",
+    "ccaa": "Andalucía",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 36.37,
+    "lon": -5.248,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "Castell de Santueri (Celanita)",
+    "ubicacion": "Felanitx / Castell de Santueri",
+    "ccaa": "Islas Baleares",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 39.447,
+    "lon": 3.127,
+    "fuente": "https://zonasdeescalada.com/page/9/"
+  },
+  {
+    "nombre": "Castellet (Castellón de la Plana)",
+    "ubicacion": "Castellón de la Plana",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 39.986,
+    "lon": -0.049,
+    "fuente": "https://zonasdeescalada.com/page/7/"
+  },
+  {
+    "nombre": "Castillo de Bayuela",
+    "ubicacion": "Provincia de Toledo, Castillo de Bayuela",
+    "ccaa": "Castilla-La Mancha",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 40.108353,
+    "lon": -4.684644,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/castillo-de-bayuela"
+  },
+  {
+    "nombre": "Castillo de Bayuela",
+    "ubicacion": "Provincia de Toledo, Castillo de Bayuela",
+    "ccaa": "Castilla-La Mancha",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.108353,
+    "lon": -4.684644,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/castillo-de-bayuela"
+  },
+  {
+    "nombre": "Castro de Baroña (Baroña, Porto do son)",
+    "ubicacion": "Baroña, Porto do Son",
+    "ccaa": "Galicia",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 42.694,
+    "lon": -9.025,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Castro de Baroña (Baroña, Porto do son)",
+    "ubicacion": "Baroña, Porto do Son",
+    "ccaa": "Galicia",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 42.694,
+    "lon": -9.025,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Chulilla",
+    "ubicacion": "Chulilla (Valencia)",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 39.652956,
+    "lon": -0.899559,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/chulilla | https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Circo de Gredos (Hoyos del Espino)",
+    "ubicacion": "Hoyos del Espino",
+    "ccaa": "Castilla y León",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 40.298,
+    "lon": -5.173,
+    "fuente": "https://zonasdeescalada.com/page/6/"
+  },
+  {
+    "nombre": "Ciudad Encantada de Tamajón",
+    "ubicacion": "Guadalajara, Tamajón",
+    "ccaa": "Castilla-La Mancha",
+    "estilo": "Bloque",
+    "roca": "Caliza",
+    "lat": 41.014683,
+    "lon": -3.254362,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/ciudad-encantada-de-tamajon | https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Coallafu (Coallafu)",
+    "ubicacion": "Coalla / Grado",
+    "ccaa": "Asturias",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 43.393,
+    "lon": -6.07,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "Congosto de Alcorlo (San Andrés de Congosto)",
+    "ubicacion": "San Andrés de Congosto",
+    "ccaa": "Castilla-La Mancha",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 41.049,
+    "lon": -2.977,
+    "fuente": "https://zonasdeescalada.com/page/6/"
+  },
+  {
+    "nombre": "Corme",
+    "ubicacion": "O Porto de Corme, Ponteceso (A Coruña)",
+    "ccaa": "Galicia",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 43.288815,
+    "lon": -8.941101,
+    "fuente": "https://climbingaway.fr/en/climbing-areas/corme | https://climbingaway.fr/fr/site-escalade/corme"
+  },
+  {
+    "nombre": "Corona, La y La Trona (Centelles)",
+    "ubicacion": "Centelles",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Arenisca",
+    "lat": 41.766,
+    "lon": 2.22,
+    "fuente": "https://zonasdeescalada.com/page/7/"
+  },
+  {
+    "nombre": "Crevillent",
+    "ubicacion": "Crevillent",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Bloque",
+    "roca": "",
+    "lat": 38.249,
+    "lon": -0.809,
+    "fuente": "https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Cuenca",
+    "ubicacion": "Cuenca, Ciudad de Cuenca",
+    "ccaa": "Castilla-La Mancha",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 40.087134,
+    "lon": -2.125254,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/cuenca | https://zonasdeescalada.com/"
+  },
+  {
+    "nombre": "Dos Hermanas-Biaizpe (Irurtzun)",
+    "ubicacion": "Irurtzun",
+    "ccaa": "Navarra",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.899,
+    "lon": -1.819,
+    "fuente": "https://zonasdeescalada.com/page/3/"
+  },
+  {
+    "nombre": "El Bancal",
+    "ubicacion": "Crevillent, Alicante",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Bloque",
+    "roca": "Caliza",
+    "lat": 38.27314,
+    "lon": -0.807597,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/el-bancal"
+  },
+  {
+    "nombre": "El Burguillo",
+    "ubicacion": "Provincia de Ávila, El Tiemblo",
+    "ccaa": "Castilla y León",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.418846,
+    "lon": -4.559112,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/burguillo | https://climbingaway.fr/en/climbing-areas/burguillo"
+  },
+  {
+    "nombre": "El Cogul",
+    "ubicacion": "El Cogul (Lleida)",
+    "ccaa": "Cataluña",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 41.46501,
+    "lon": 0.697195,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/el-cogul | https://climbingaway.fr/fr/site-escalade/el-cogul"
+  },
+  {
+    "nombre": "El Escorial",
+    "ubicacion": "Madrid, El Escorial",
+    "ccaa": "Comunidad de Madrid",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.565973,
+    "lon": -4.158392,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/el-escorial"
+  },
+  {
+    "nombre": "Es Verger (Esporles)",
+    "ubicacion": "Esporles",
+    "ccaa": "Islas Baleares",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 39.672,
+    "lon": 2.573,
+    "fuente": "https://zonasdeescalada.com/page/7/"
+  },
+  {
+    "nombre": "Escales (Pont de Suert)",
+    "ubicacion": "El Pont de Suert",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 42.355,
+    "lon": 0.744,
+    "fuente": "https://zonasdeescalada.com/page/9/"
+  },
+  {
+    "nombre": "Etxauri",
+    "ubicacion": "Etxauri",
+    "ccaa": "Navarra",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.783,
+    "lon": -1.78,
+    "fuente": "https://zonasdeescalada.com/"
+  },
+  {
+    "nombre": "Foradá (Petrer)",
+    "ubicacion": "Petrer",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 38.493,
+    "lon": -0.775,
+    "fuente": "https://zonasdeescalada.com/page/3/"
+  },
+  {
+    "nombre": "Fragas del Sil (Ponferrada)",
+    "ubicacion": "Ponferrada",
+    "ccaa": "Castilla y León",
+    "estilo": "Vía",
+    "roca": "Pizarra",
+    "lat": 42.436,
+    "lon": -6.723,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Fraguels (Bunyola)",
+    "ubicacion": "Bunyola",
+    "ccaa": "Islas Baleares",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 39.69,
+    "lon": 2.7,
+    "fuente": "https://zonasdeescalada.com/page/9/"
+  },
+  {
+    "nombre": "Fuixarda, La (Barcelona)",
+    "ubicacion": "Barcelona",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Arenisca",
+    "lat": 41.407,
+    "lon": 2.17,
+    "fuente": "https://zonasdeescalada.com/page/6/"
+  },
+  {
+    "nombre": "Hoces de Vegacervera (Vegacervera)",
+    "ubicacion": "Vegacervera",
+    "ccaa": "Castilla y León",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.893,
+    "lon": -5.536,
+    "fuente": "https://zonasdeescalada.com/page/6/"
+  },
+  {
+    "nombre": "Hoyamoros",
+    "ubicacion": "Provincia de Salamanca, Candelario",
+    "ccaa": "Castilla y León",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.299464,
+    "lon": -5.749798,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/hoyamoros | https://climbingaway.fr/en/climbing-areas/hoyamoros | https://climbingaway.fr/fr/site-escalade/hoyamoros"
+  },
+  {
+    "nombre": "Huesa del Coman (Huesa del Coman)",
+    "ubicacion": "Huesa del Común",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 40.919,
+    "lon": -1.097,
+    "fuente": "https://zonasdeescalada.com/page/4/"
+  },
+  {
+    "nombre": "Jaizkibel",
+    "ubicacion": "Gipuzkoa, Jaizkibel",
+    "ccaa": "País Vasco",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 43.364841,
+    "lon": -1.839355,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/jaizkibel | https://climbingaway.fr/fr/site-escalade/jaizkibel"
+  },
+  {
+    "nombre": "Jameo de la Puerta Falsa (Haría. Lanzarote)",
+    "ubicacion": "Haría, Lanzarote",
+    "ccaa": "Canarias",
+    "estilo": "Vía",
+    "roca": "Volcánica",
+    "lat": 29.136,
+    "lon": -13.508,
+    "fuente": "https://zonasdeescalada.com/page/4/"
+  },
+  {
+    "nombre": "Jaraba (Jaraba)",
+    "ubicacion": "Jaraba",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 41.18,
+    "lon": -1.899,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Kantera (Azpeitia)",
+    "ubicacion": "Azpeitia",
+    "ccaa": "País Vasco",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 43.183,
+    "lon": -2.267,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "La Boyeriza (Geras de Gordón)",
+    "ubicacion": "Geras de Gordón",
+    "ccaa": "Castilla y León",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.836,
+    "lon": -5.664,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "La Comarca",
+    "ubicacion": "Provincia de Barcelona, Les Masies de Roda",
+    "ccaa": "Cataluña",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 41.979547,
+    "lon": 2.343454,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/la-comarca | https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "La Jonquera (Puig del Corb)",
+    "ubicacion": "Girona, La Jonquera / Cantallops",
+    "ccaa": "Cataluña",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 42.424064,
+    "lon": 2.903636,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/la-jonquera-puig-del-corb"
+  },
+  {
+    "nombre": "La Ñora",
+    "ubicacion": "Gijón, San Clemente",
+    "ccaa": "Asturias",
+    "estilo": "Bloque",
+    "roca": "Conglomerado",
+    "lat": 43.547996,
+    "lon": -5.592842,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/la-nora-bulder"
+  },
+  {
+    "nombre": "La Pedriza",
+    "ubicacion": "Madrid, Manzanares el Real",
+    "ccaa": "Comunidad de Madrid",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 40.757839,
+    "lon": -3.8715,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/la-pedriza"
+  },
+  {
+    "nombre": "La Pedriza",
+    "ubicacion": "Madrid, Manzanares el Real",
+    "ccaa": "Comunidad de Madrid",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.757839,
+    "lon": -3.8715,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/la-pedriza"
+  },
+  {
+    "nombre": "Laguna Negra (Vinuesa)",
+    "ubicacion": "Vinuesa",
+    "ccaa": "Castilla y León",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 41.958,
+    "lon": -2.752,
+    "fuente": "https://zonasdeescalada.com/page/6/"
+  },
+  {
+    "nombre": "Larraona",
+    "ubicacion": "Larraona (Navarra)",
+    "ccaa": "Navarra",
+    "estilo": "Bloque",
+    "roca": "Caliza",
+    "lat": 42.779839,
+    "lon": -2.242085,
+    "fuente": "https://climbingaway.fr/en/climbing-areas/larraona | https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Las Tuerces",
+    "ubicacion": "Palencia, Villaescusa de las Torres / Las Tuerces",
+    "ccaa": "Castilla y León",
+    "estilo": "Bloque",
+    "roca": "Caliza",
+    "lat": 42.792,
+    "lon": -4.255,
+    "fuente": "https://www.madboulder.org/es/las-tuerces | https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Ligüerre de Cinca (Ainsa)",
+    "ubicacion": "Aínsa",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.367,
+    "lon": 0.174,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "Margalef",
+    "ubicacion": "Margalef de Montsant (Tarragona)",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Conglomerado",
+    "lat": 41.297761,
+    "lon": 0.776489,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/margalef-can-llepafils | https://zonasdeescalada.com/"
+  },
+  {
+    "nombre": "Mijas (Mijas)",
+    "ubicacion": "Mijas",
+    "ccaa": "Andalucía",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 36.596,
+    "lon": -4.685,
+    "fuente": "https://zonasdeescalada.com/page/8/"
+  },
+  {
+    "nombre": "Mogán",
+    "ubicacion": "Mogán",
+    "ccaa": "Canarias",
+    "estilo": "Bloque",
+    "roca": "",
+    "lat": 27.884,
+    "lon": -15.722,
+    "fuente": "https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Mont-Ral (Mont-Ral)",
+    "ubicacion": "Mont-ral",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 41.296,
+    "lon": 1.089,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "Monte Galiñeiro (Vincios)",
+    "ubicacion": "Vincios",
+    "ccaa": "Galicia",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 42.234,
+    "lon": -8.667,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "Monte Galiñeiro (Vincios)",
+    "ubicacion": "Vincios",
+    "ccaa": "Galicia",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 42.234,
+    "lon": -8.667,
+    "fuente": "https://zonasdeescalada.com/page/5/"
+  },
+  {
+    "nombre": "Muelas, Las (Muelas del Pan)",
+    "ubicacion": "Muelas del Pan",
+    "ccaa": "Castilla y León",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 41.59,
+    "lon": -5.833,
+    "fuente": "https://zonasdeescalada.com/page/7/"
+  },
+  {
+    "nombre": "Navalosa",
+    "ubicacion": "Provincia de Ávila, Navalosa",
+    "ccaa": "Castilla y León",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.400645,
+    "lon": -4.924836,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/navalosa | https://climbingaway.fr/en/climbing-areas/navalosa"
+  },
+  {
+    "nombre": "Oliana (Contrafot de Rumbau)",
+    "ubicacion": "Oliana",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.07,
+    "lon": 1.314,
+    "fuente": "https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Ordesa (Torla)",
+    "ubicacion": "Torla / Ordesa",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.655,
+    "lon": -0.093,
+    "fuente": "https://zonasdeescalada.com/"
+  },
+  {
+    "nombre": "Panticosa (Panticosa)",
+    "ubicacion": "Panticosa",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 42.726,
+    "lon": -0.262,
+    "fuente": "https://zonasdeescalada.com/page/7/"
+  },
+  {
+    "nombre": "Pared de Catalunya-Montrebei (Pont de Montanyana)",
+    "ubicacion": "Pont de Montanyana / Montrebei",
+    "ccaa": "Aragón / Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.093,
+    "lon": 0.68,
+    "fuente": "https://zonasdeescalada.com/page/9/"
+  },
+  {
+    "nombre": "Pared Negra. Frontal de Orihuela (Orihuela)",
+    "ubicacion": "Orihuela",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 38.084,
+    "lon": -0.942,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Patones Pueblo",
+    "ubicacion": "Patones / Sierra Norte de Madrid",
+    "ccaa": "Comunidad de Madrid",
+    "estilo": "Vía",
+    "roca": "Caliza / calcoarenita",
+    "lat": 40.861079,
+    "lon": -3.488384,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/patones-pueblo | https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Pedraforca (Saldes)",
+    "ubicacion": "Saldes",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.244,
+    "lon": 1.704,
+    "fuente": "https://zonasdeescalada.com/page/9/"
+  },
+  {
+    "nombre": "Pena Corneira",
+    "ubicacion": "Provincia de Ourense, Leiro",
+    "ccaa": "Galicia",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 42.370711,
+    "lon": -8.179021,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/pena-corneira | https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Peñarrubia",
+    "ubicacion": "Guadalix de la Sierra (Madrid)",
+    "ccaa": "Comunidad de Madrid",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 40.771606,
+    "lon": -3.664497,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/penarrubia-comunidad-de-madrid | https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Petón do Xalo (Castelo)",
+    "ubicacion": "Castelo",
+    "ccaa": "Galicia",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 42.333,
+    "lon": -8.217,
+    "fuente": "https://zonasdeescalada.com/page/9/"
+  },
+  {
+    "nombre": "Pic de l’Aliga (Sant Andreu de la Barca)",
+    "ubicacion": "Sant Andreu de la Barca",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Conglomerado",
+    "lat": 41.451,
+    "lon": 1.969,
+    "fuente": "https://zonasdeescalada.com/page/3/"
+  },
+  {
+    "nombre": "Picos de Europa",
+    "ubicacion": "Picos de Europa",
+    "ccaa": "Asturias / Cantabria / Leon",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 43.173,
+    "lon": -4.847,
+    "fuente": "https://zonasdeescalada.com/page/4/"
+  },
+  {
+    "nombre": "Pitarejo (Pitarque)",
+    "ubicacion": "Pitarque",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 40.627,
+    "lon": -0.57,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Pontons (Pontons)",
+    "ubicacion": "Pontons",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 41.385,
+    "lon": 1.553,
+    "fuente": "https://zonasdeescalada.com/page/6/"
+  },
+  {
+    "nombre": "Poyatos (Algatocín)",
+    "ubicacion": "Algatocín",
+    "ccaa": "Andalucía",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 36.568,
+    "lon": -5.272,
+    "fuente": "https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Presa do Eume (Goente)",
+    "ubicacion": "Goente",
+    "ccaa": "Galicia",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 43.396,
+    "lon": -8.098,
+    "fuente": "https://zonasdeescalada.com/page/7/"
+  },
+  {
+    "nombre": "Puerto Roque (Valencia de Alcántara)",
+    "ubicacion": "Valencia de Alcántara",
+    "ccaa": "Extremadura",
+    "estilo": "Vía",
+    "roca": "Cuarcita",
+    "lat": 39.413,
+    "lon": -7.237,
+    "fuente": "https://zonasdeescalada.com/page/3/"
+  },
+  {
+    "nombre": "Punta Nariga",
+    "ubicacion": "A Coruña, Mens",
+    "ccaa": "Galicia",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 43.320463,
+    "lon": -8.909885,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/punta-nariga-mens"
+  },
+  {
+    "nombre": "Quirós (Aciera)",
+    "ubicacion": "Aciera / Quirós",
+    "ccaa": "Asturias",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 43.178,
+    "lon": -5.949,
+    "fuente": "https://zonasdeescalada.com/"
+  },
+  {
+    "nombre": "Recuchillo (jaén)",
+    "ubicacion": "Jaén",
+    "ccaa": "Andalucía",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 37.776,
+    "lon": -3.789,
+    "fuente": "https://zonasdeescalada.com/page/9/"
+  },
+  {
+    "nombre": "Reguchillo",
+    "ubicacion": "Cordel de Jabalcuz, Jaén",
+    "ccaa": "Andalucía",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 37.750494,
+    "lon": -3.826632,
+    "fuente": "https://climbingaway.fr/en/climbing-areas/reguchillo-rio-cuchillo | https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Remuñe (Benasque)",
+    "ubicacion": "Benasque",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 42.604,
+    "lon": 0.513,
+    "fuente": "https://zonasdeescalada.com/page/9/"
+  },
+  {
+    "nombre": "Resconorio",
+    "ubicacion": "Cantabria, Entrambasmestas / Bustiyerro",
+    "ccaa": "Comunidad Autónoma de Cantabria",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 43.096527,
+    "lon": -3.843353,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/resconorio"
+  },
+  {
+    "nombre": "Rincón de Bonanza (Orihuela)",
+    "ubicacion": "Orihuela",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 38.069,
+    "lon": -0.987,
+    "fuente": "https://zonasdeescalada.com/page/8/"
+  },
+  {
+    "nombre": "Rodellar",
+    "ubicacion": "Rodellar, Bierge (Huesca)",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.286612,
+    "lon": -0.081925,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/rodellar | https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Roque Nublo (Ayacata. Gran Canaria)",
+    "ubicacion": "Ayacata, Gran Canaria",
+    "ccaa": "Canarias",
+    "estilo": "Vía",
+    "roca": "Volcánica",
+    "lat": 27.969,
+    "lon": -15.604,
+    "fuente": "https://zonasdeescalada.com/page/8/"
+  },
+  {
+    "nombre": "Rozas",
+    "ubicacion": "Pedrosa de Valdeporres, Burgos",
+    "ccaa": "Castilla y León",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 43.040085,
+    "lon": -3.74166,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/rozas"
+  },
+  {
+    "nombre": "Salto del Gallo (Almería)",
+    "ubicacion": "Almería",
+    "ccaa": "Andalucía",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 36.838,
+    "lon": -2.468,
+    "fuente": "https://zonasdeescalada.com/page/8/"
+  },
+  {
+    "nombre": "San Martín de Ubierna (San Martín de Ubierna)",
+    "ubicacion": "San Martín de Ubierna",
+    "ccaa": "Castilla y León",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.499,
+    "lon": -3.636,
+    "fuente": "https://zonasdeescalada.com/page/7/"
+  },
+  {
+    "nombre": "Santa Gadea",
+    "ubicacion": "Burgos, Santa Gadea de Alfoz",
+    "ccaa": "Castilla y León",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 42.948265,
+    "lon": -3.964777,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/santa-gadea | https://climbingaway.fr/fr/site-escalade/santa-gadea"
+  },
+  {
+    "nombre": "Santa Linya",
+    "ubicacion": "Santa Linya, Balaguer (Lleida)",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 41.925998,
+    "lon": 0.81187,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/santa-linya | https://zonasdeescalada.com/"
+  },
+  {
+    "nombre": "Segad (Caldas de Reis)",
+    "ubicacion": "Caldas de Reis",
+    "ccaa": "Galicia",
+    "estilo": "Vía",
+    "roca": "Granito",
+    "lat": 42.605,
+    "lon": -8.642,
+    "fuente": "https://zonasdeescalada.com/page/8/"
+  },
+  {
+    "nombre": "Siurana (Siurana de Prades)",
+    "ubicacion": "Siurana de Prades",
+    "ccaa": "Cataluña",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 41.259,
+    "lon": 0.925,
+    "fuente": "https://zonasdeescalada.com/"
+  },
+  {
+    "nombre": "Tales (Onda)",
+    "ubicacion": "Onda / Tales",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Vía",
+    "roca": "Arenisca",
+    "lat": 39.958,
+    "lon": -0.264,
+    "fuente": "https://zonasdeescalada.com/page/10/"
+  },
+  {
+    "nombre": "Teverga",
+    "ubicacion": "Asturias, Entrago / Teverga",
+    "ccaa": "Asturias",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 43.177705,
+    "lon": -6.093035,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/teverga | https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Teverga",
+    "ubicacion": "Asturias, Entrago / Teverga",
+    "ccaa": "Asturias",
+    "estilo": "Bloque",
+    "roca": "Caliza",
+    "lat": 43.177705,
+    "lon": -6.093035,
+    "fuente": "https://climbingaway.fr/fr/site-escalade/teverga | https://zonasdeescalada.com/page/2/"
+  },
+  {
+    "nombre": "Uxola (Alcoy)",
+    "ubicacion": "Alcoy",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 38.696,
+    "lon": -0.475,
+    "fuente": "https://zonasdeescalada.com/page/3/"
+  },
+  {
+    "nombre": "Valcorchero",
+    "ubicacion": "Monte Valcorchero, Plasencia",
+    "ccaa": "Extremadura",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.054049,
+    "lon": -6.095684,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/valcorchero | https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Valdesangil",
+    "ubicacion": "Valdesangil",
+    "ccaa": "Castilla y León",
+    "estilo": "Bloque",
+    "roca": "",
+    "lat": 40.428,
+    "lon": -5.674,
+    "fuente": "https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Valle de Isábena (Beranuy y Merli)",
+    "ubicacion": "Beranuy y Merli",
+    "ccaa": "Aragón",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 42.323,
+    "lon": 0.498,
+    "fuente": "https://zonasdeescalada.com/page/6/"
+  },
+  {
+    "nombre": "Velez de Benaudalla (Velez)",
+    "ubicacion": "Vélez de Benaudalla",
+    "ccaa": "Andalucía",
+    "estilo": "Vía",
+    "roca": "Caliza",
+    "lat": 36.834,
+    "lon": -3.521,
+    "fuente": "https://zonasdeescalada.com/page/8/"
+  },
+  {
+    "nombre": "Venteadero o Ventorro de Pelayo (Béjar)",
+    "ubicacion": "Béjar",
+    "ccaa": "Castilla y León",
+    "estilo": "Vía",
+    "roca": "Otra / muro barrenado",
+    "lat": 40.382,
+    "lon": -5.763,
+    "fuente": "https://zonasdeescalada.com/page/3/"
+  },
+  {
+    "nombre": "Vilafamés",
+    "ubicacion": "Vilafamés (Castellón)",
+    "ccaa": "Comunidad Valenciana",
+    "estilo": "Bloque",
+    "roca": "Arenisca",
+    "lat": 40.106415,
+    "lon": -0.05299,
+    "fuente": "https://climbingaway.fr/en/climbing-areas/vilafames | https://climbingaway.fr/fr/voyager/topos-guides-escalade/boulder-en-espana"
+  },
+  {
+    "nombre": "Zarzalejo",
+    "ubicacion": "Pajares / Zarzalejo (Madrid)",
+    "ccaa": "Comunidad de Madrid",
+    "estilo": "Bloque",
+    "roca": "Granito",
+    "lat": 40.534338,
+    "lon": -4.177718,
+    "fuente": "https://climbingaway.fr/es/escuela-escalada/zarzalejo | https://dparapente.com/wp-content/uploads/2020/11/guia-practica-boulder-zarzalejo_DParapente.pdf"
+  }
+]
