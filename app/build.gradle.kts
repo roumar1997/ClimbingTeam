@@ -84,6 +84,9 @@ dependencies {
     // OSMDroid for native map rendering (works on emulator unlike WebView+Leaflet)
     implementation("org.osmdroid:osmdroid-android:6.1.18")
 
+    // WebViewAssetLoader — allows local assets to make XHR/fetch requests
+    implementation("androidx.webkit:webkit:1.12.1")
+
     // Google Sign-In via Credential Manager (modern API, no deprecated GoogleSignIn)
     implementation("androidx.credentials:credentials:1.3.0")
     implementation("androidx.credentials:credentials-play-services-auth:1.3.0")

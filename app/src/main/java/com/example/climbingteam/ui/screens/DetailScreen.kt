@@ -33,12 +33,13 @@ import java.util.Locale
 @Composable
 fun DetailScreen(
     viewModel: WeatherViewModel,
-    slotIndex: Int,
+    slotIndex: Int = 0,
+    overrideWeather: LocationWeather? = null,
     onBack: () -> Unit,
     onViewProfile: (String) -> Unit = {}
 ) {
     val weatherData by viewModel.weatherData.collectAsState()
-    val weather = weatherData[slotIndex]
+    val weather = overrideWeather ?: weatherData[slotIndex]
 
     if (weather == null) {
         Box(

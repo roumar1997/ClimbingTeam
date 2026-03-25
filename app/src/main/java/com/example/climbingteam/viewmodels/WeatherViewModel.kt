@@ -31,6 +31,36 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
     private val _weatherData = MutableStateFlow(arrayOfNulls<LocationWeather>(3))
     val weatherData: StateFlow<Array<LocationWeather?>> = _weatherData.asStateFlow()
 
+    // Sector preview (used when tapping a sector card)
+    private val _sectorPreview = MutableStateFlow<LocationWeather?>(null)
+    val sectorPreview: StateFlow<LocationWeather?> = _sectorPreview.asStateFlow()
+
+    fun loadSectorPreview(lat: Double, lon: Double, name: String) {
+        viewModelScope.launch {
+            _sectorPreview.value = null   // reset to show loading
+            val geo = GeoLocation(
+                id = 0L, name = name,
+                latitude = lat, longitude = lon,
+                elevation = null, country = null,
+                region = null, province = null, timezone = null
+            )
+            val forecast = OpenMeteoApi.getForecast(lat, lon, 7)
+            if (forecast != null) {
+                val hourly = OpenMeteoApi.parseHourlyData(forecast.hourly)
+                val daily  = OpenMeteoApi.parseDailyData(forecast.daily)
+                val condition = OpenMeteoApi.evaluateClimbingCondition(forecast.current)
+                _sectorPreview.value = LocationWeather(
+                    location  = geo,
+                    current   = forecast.current,
+                    hourlyForecast = hourly,
+                    dailyForecast  = daily,
+                    elevation = forecast.elevation ?: geo.elevation,
+                    climbingCondition = condition
+                )
+            }
+        }
+    }
+
     // Loading state
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -225,6 +255,46 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             }
             score
         }
+    }
+
+    /** Returns (tempScore, windScore, rainScore, humidityScore) each 0..100 normalized */
+    fun getClimbingScores(weather: LocationWeather): List<Int> {
+        val c = weather.current ?: return listOf(0, 0, 0, 0)
+        val temp = c.temperature ?: 15.0
+        val wind = c.windSpeed ?: 0.0
+        val precip = c.precipitation ?: 0.0
+        val humidity = c.humidity ?: 50.0
+
+        val tempScore = when {
+            temp in 12.0..22.0 -> 100
+            temp in 8.0..28.0  -> 66
+            temp in 5.0..32.0  -> 33
+            else -> 0
+        }
+        val windScore = when {
+            wind < 10 -> 100
+            wind < 20 -> 60
+            wind < 30 -> 20
+            else -> 0
+        }
+        val rainScore = when {
+            precip == 0.0 -> 100
+            precip < 1    -> 60
+            precip < 3    -> 20
+            else -> 0
+        }
+        val humidityScore = when {
+            humidity in 30.0..70.0 -> 100
+            humidity in 20.0..80.0 -> 50
+            else -> 0
+        }
+        return listOf(tempScore, windScore, rainScore, humidityScore)
+    }
+
+    fun getTotalScore(weather: LocationWeather): Int {
+        val s = getClimbingScores(weather)
+        // Weighted: temp 30%, wind 25%, rain 25%, humidity 20%
+        return (s[0] * 0.30 + s[1] * 0.25 + s[2] * 0.25 + s[3] * 0.20).toInt()
     }
 
     // Favorites

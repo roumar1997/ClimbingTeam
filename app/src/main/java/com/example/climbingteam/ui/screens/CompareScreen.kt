@@ -5,9 +5,11 @@ import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Landscape
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
@@ -169,22 +171,23 @@ fun CompareScreen(
                 }
             }
 
-            // Best location recommendation
-            val bestWeather = bestIndex?.let { weatherData[it] }
+            // ── Comparison analysis panel ──────────────────
+            val validWeathers = weatherData.filterNotNull()
             AnimatedVisibility(
-                visible = bestWeather != null,
+                visible = validWeathers.size >= 2,
                 enter = slideInVertically(
                     animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
                     initialOffsetY = { it }
                 ) + fadeIn(tween(400)),
                 exit = fadeOut(tween(200))
             ) {
-                if (bestWeather != null) {
-                    Column {
+                if (validWeathers.size >= 2) {
+                    Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                         Spacer(Modifier.height(16.dp))
-                        BestLocationBanner(
-                            locationName = bestWeather.location.name,
-                            modifier = Modifier.padding(horizontal = 16.dp)
+                        ClimbingComparisonPanel(
+                            weatherData = weatherData,
+                            viewModel = viewModel,
+                            bestIndex = bestIndex
                         )
                     }
                 }
@@ -223,5 +226,277 @@ fun CompareScreen(
 
             Spacer(Modifier.height(24.dp))
         }
+    }
+}
+
+// ── Comparison Panel ──────────────────────────────────────
+
+private val slotColors = listOf(
+    Color(0xFF58A6FF),  // Azul
+    Color(0xFF7C3AED),  // Violeta
+    Color(0xFFFF6B6B)   // Coral
+)
+
+private val categoryLabels = listOf("Temp", "Viento", "Lluvia", "Humedad")
+private val categoryIcons = listOf("🌡", "💨", "🌧", "💧")
+
+@Composable
+private fun ClimbingComparisonPanel(
+    weatherData: Array<LocationWeather?>,
+    viewModel: WeatherViewModel,
+    bestIndex: Int?
+) {
+    val bestWeather = bestIndex?.let { weatherData[it] }
+    val validEntries = weatherData.mapIndexedNotNull { idx, w ->
+        if (w != null) Triple(idx, w, viewModel.getClimbingScores(w)) else null
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(ClimbingColors.cardBackground)
+            .padding(16.dp)
+    ) {
+        // ── Header: best location banner ──
+        if (bestWeather != null) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(ClimbingColors.optimo.copy(alpha = 0.12f))
+                    .padding(horizontal = 12.dp, vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.EmojiEvents, null,
+                    tint = ClimbingColors.optimo,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(Modifier.width(8.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        "Mejor opci\u00f3n: ${bestWeather.location.name}",
+                        style = MaterialTheme.typography.titleSmall,
+                        color = ClimbingColors.optimo,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "Puntuaci\u00f3n: ${viewModel.getTotalScore(bestWeather)}/100",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ClimbingColors.optimo.copy(alpha = 0.7f)
+                    )
+                }
+                // Score badge
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(ClimbingColors.optimo.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        "${viewModel.getTotalScore(bestWeather)}",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = ClimbingColors.optimo
+                    )
+                }
+            }
+            Spacer(Modifier.height(16.dp))
+        }
+
+        // ── Legend: color per location ──
+        Text(
+            "COMPARATIVA DE ESCALADA",
+            style = MaterialTheme.typography.labelSmall,
+            color = ClimbingColors.textTertiary,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+        Spacer(Modifier.height(8.dp))
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            validEntries.forEach { (idx, w, scores) ->
+                val total = viewModel.getTotalScore(w)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(10.dp)
+                            .clip(CircleShape)
+                            .background(slotColors[idx])
+                    )
+                    Spacer(Modifier.width(6.dp))
+                    Column {
+                        Text(
+                            w.location.name,
+                            fontSize = 11.sp,
+                            color = ClimbingColors.textPrimary,
+                            fontWeight = FontWeight.SemiBold,
+                            maxLines = 1
+                        )
+                        Text(
+                            "$total pts",
+                            fontSize = 10.sp,
+                            color = ClimbingColors.textTertiary
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // ── Bar chart: 4 categories, grouped bars ──
+        for (catIdx in 0..3) {
+            val catLabel = categoryLabels[catIdx]
+            val catIcon = categoryIcons[catIdx]
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Category label
+                Text(
+                    "$catIcon $catLabel",
+                    fontSize = 11.sp,
+                    color = ClimbingColors.textSecondary,
+                    modifier = Modifier.width(70.dp)
+                )
+
+                // Bars column
+                Column(
+                    modifier = Modifier.weight(1f),
+                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                ) {
+                    validEntries.forEach { (idx, w, scores) ->
+                        val score = scores[catIdx]
+                        val rawValue = when (catIdx) {
+                            0 -> "${w.current?.temperature?.toInt() ?: 0}\u00b0C"
+                            1 -> "${w.current?.windSpeed?.toInt() ?: 0} km/h"
+                            2 -> "${w.current?.precipitation ?: 0.0} mm"
+                            3 -> "${w.current?.humidity?.toInt() ?: 0}%"
+                            else -> ""
+                        }
+
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            // Animated bar
+                            val animatedWidth by animateFloatAsState(
+                                targetValue = score / 100f,
+                                animationSpec = tween(800, delayMillis = catIdx * 100),
+                                label = "bar_${idx}_$catIdx"
+                            )
+                            Box(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(14.dp)
+                                    .clip(RoundedCornerShape(4.dp))
+                                    .background(Color(0xFF1C2128))
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .fillMaxHeight()
+                                        .fillMaxWidth(animatedWidth.coerceAtLeast(0.02f))
+                                        .clip(RoundedCornerShape(4.dp))
+                                        .background(
+                                            Brush.horizontalGradient(
+                                                listOf(
+                                                    slotColors[idx].copy(alpha = 0.6f),
+                                                    slotColors[idx]
+                                                )
+                                            )
+                                        )
+                                )
+                            }
+                            // Value label
+                            Text(
+                                rawValue,
+                                fontSize = 10.sp,
+                                color = ClimbingColors.textTertiary,
+                                modifier = Modifier.width(52.dp).padding(start = 6.dp)
+                            )
+                        }
+                    }
+                }
+            }
+
+            if (catIdx < 3) {
+                Spacer(Modifier.height(4.dp))
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // ── Total score summary row ──
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(10.dp))
+                .background(Color(0xFF1C2128))
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
+        ) {
+            validEntries.forEach { (idx, w, _) ->
+                val total = viewModel.getTotalScore(w)
+                val isBest = bestIndex == idx
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(44.dp)
+                            .clip(CircleShape)
+                            .background(
+                                if (isBest) ClimbingColors.optimo.copy(alpha = 0.2f)
+                                else slotColors[idx].copy(alpha = 0.15f)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            "$total",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isBest) ClimbingColors.optimo else slotColors[idx]
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Text(
+                        w.location.name,
+                        fontSize = 10.sp,
+                        color = if (isBest) ClimbingColors.optimo else ClimbingColors.textSecondary,
+                        fontWeight = if (isBest) FontWeight.Bold else FontWeight.Normal,
+                        maxLines = 1
+                    )
+                    if (isBest) {
+                        Text(
+                            "\u2b50 Mejor",
+                            fontSize = 9.sp,
+                            color = ClimbingColors.optimo
+                        )
+                    }
+                }
+            }
+        }
+
+        Spacer(Modifier.height(8.dp))
+
+        // ── Scoring explanation ──
+        Text(
+            "Rango ideal: 12-22\u00b0C \u00b7 Viento <10km/h \u00b7 Sin lluvia \u00b7 Humedad 30-70%",
+            fontSize = 9.sp,
+            color = ClimbingColors.textTertiary.copy(alpha = 0.6f),
+            modifier = Modifier.padding(top = 4.dp)
+        )
     }
 }

@@ -2,81 +2,48 @@
 <html>
 <head>
     <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+    <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport">
+    <link href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" rel="stylesheet"/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        * { margin:0; padding:0; box-sizing:border-box; }
-        body { background:#0D1117; }
-        #map { width:100vw; height:100vh; background:#0D1117; }
-
-        #info {
-            position:absolute; bottom:24px; left:50%; transform:translateX(-50%);
-            background:rgba(13,17,23,0.92); color:#C9D1D9;
-            font-family:sans-serif; font-size:13px;
-            padding:8px 18px; border-radius:20px; z-index:1000;
-            white-space:nowrap; border:1px solid rgba(88,166,255,0.2);
+        body { margin:0; padding:0; background:#0D1117; }
+        #mapid { position:absolute; top:0; left:0; right:0; bottom:0; background:#0D1117; }
+        #controls {
+            position:absolute; bottom:16px; left:50%; transform:translateX(-50%);
+            z-index:1000; background:rgba(13,17,23,0.92); border-radius:20px;
+            padding:8px 16px; display:flex; align-items:center; gap:10px;
+            color:#C9D1D9; font-family:sans-serif; font-size:13px;
+            border:1px solid rgba(88,166,255,0.2);
         }
-        #info .buttons { display:inline; margin-left:10px; }
-        #info button {
+        #controls button {
             background:none; border:1px solid rgba(88,166,255,0.3);
-            color:#58A6FF; border-radius:4px; padding:2px 8px;
-            font-size:14px; cursor:pointer; margin:0 2px;
+            color:#58A6FF; border-radius:6px; width:32px; height:32px;
+            cursor:pointer; font-size:16px;
         }
-
-        #legend {
-            position:absolute; top:12px; right:12px;
-            background:rgba(13,17,23,0.92); border-radius:12px;
-            padding:10px 12px; z-index:1000;
-            font-family:sans-serif; font-size:11px; color:#8B949E;
-            border:1px solid rgba(88,166,255,0.15);
-        }
-        .legend-gradient {
-            width:90px; height:7px; border-radius:4px; margin-top:6px;
-            background:linear-gradient(to right,#00BFFF,#00FF7F,#FFFF00,#FF8C00,#FF2222);
-        }
-        .legend-labels {
-            display:flex; justify-content:space-between;
-            width:90px; margin-top:3px; font-size:9px; color:#6E7681;
-        }
-
-        #location-btn {
-            position:absolute; bottom:24px; right:12px;
-            background:rgba(13,17,23,0.92); border:1px solid rgba(88,166,255,0.3);
-            border-radius:50%; width:40px; height:40px;
-            display:flex; align-items:center; justify-content:center;
-            z-index:1000; cursor:pointer; color:#58A6FF; font-size:18px;
-        }
-
-        .leaflet-control-zoom { border:none !important; }
+        .leaflet-control-attribution { font-size:8px !important; opacity:0.5; }
         .leaflet-control-zoom a {
             background:#161B22 !important; color:#58A6FF !important;
-            border:1px solid #30363D !important; border-radius:6px !important;
-            margin-bottom:2px !important;
+            border:1px solid #30363D !important;
         }
     </style>
 </head>
 <body>
-<div id="map"></div>
-<div id="info">
-    <span id="timestamp">Cargando radar...</span>
-    <span class="buttons">
-        <button onclick="stop();showFrame(animationPosition-1);">&#9664;</button>
-        <button id="playBtn" onclick="playStop();">&#9646;&#9646;</button>
-        <button onclick="stop();showFrame(animationPosition+1);">&#9654;</button>
-    </span>
+
+<div id="mapid"></div>
+<div id="controls">
+    <button onclick="stop(); showFrame(animationPosition - 1);">&#9664;</button>
+    <button id="playBtn" onclick="playStop();">&#9654;</button>
+    <button onclick="stop(); showFrame(animationPosition + 1);">&#9654;</button>
+    <span id="timestamp">Cargando...</span>
 </div>
-<div id="legend">
-    Precipitaci&oacute;n
-    <div class="legend-gradient"></div>
-    <div class="legend-labels"><span>Ligera</span><span>Intensa</span></div>
-</div>
-<div id="location-btn" onclick="goToMyLocation();">&#9673;</div>
 
 <script>
-var TILE_SIZE = 256;
-var RADAR_OPACITY = 0.7;
-var ANIMATION_DELAY_MS = 600;
+// === EXACT PATTERN FROM OFFICIAL RAINVIEWER EXAMPLE ===
+// https://github.com/rainviewer/rainviewer-api-example
+
+var TILE_SIZE = window.devicePixelRatio >= 2 ? 512 : 256;
+var RADAR_OPACITY = 0.8;
+var ANIMATION_DELAY_MS = 500;
 var API_URL = "https://api.rainviewer.com/public/weather-maps.json";
 
 var apiData = {};
@@ -86,126 +53,61 @@ var animationTimer = false;
 var currentLayer = null;
 var isLoading = false;
 var layerCache = {};
-var myLat = 40.4, myLon = -3.7;
 var userMarker = null;
 
-// === MAP ===
-var map = L.map('map', {
-    zoomControl: true,
-    attributionControl: false,
-    maxZoom: 12
-}).setView([myLat, myLon], 6);
+var map = L.map('mapid', { maxZoom: 12, zoomControl: true }).setView([40.4, -3.7], 6);
 
-// Try multiple tile providers - first one that works wins
-var tileProviders = [
-    // 1. CartoDB Voyager (dark enough but VISIBLE borders/labels)
-    'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}.png',
-    // 2. OpenStreetMap standard (fallback)
-    'https://tile.openstreetmap.org/{z}/{x}/{y}.png'
-];
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png', {
+    attribution: '&copy; CARTO &copy; OSM | RainViewer',
+    subdomains: 'abcd',
+    maxZoom: 19
+}).addTo(map);
 
-var tileIdx = 0;
-var baseTiles = null;
-
-function tryTileProvider(idx) {
-    if (idx >= tileProviders.length) {
-        console.error('All tile providers failed');
-        document.getElementById('timestamp').innerHTML = 'Error: sin mapa base';
-        return;
-    }
-    console.log('Trying tile provider ' + idx + ': ' + tileProviders[idx]);
-
-    if (baseTiles) map.removeLayer(baseTiles);
-
-    var errorCount = 0;
-    var loadCount = 0;
-
-    baseTiles = L.tileLayer(tileProviders[idx], {
-        subdomains: 'abcd',
-        maxZoom: 18
-    });
-
-    baseTiles.on('tileerror', function(e) {
-        errorCount++;
-        console.error('Tile error #' + errorCount + ' provider ' + idx);
-        // If too many errors, try next provider
-        if (errorCount > 3 && loadCount === 0) {
-            console.log('Too many errors, switching provider...');
-            tryTileProvider(idx + 1);
-        }
-    });
-
-    baseTiles.on('tileload', function() {
-        loadCount++;
-        if (loadCount === 1) console.log('Provider ' + idx + ' working! Tiles loading.');
-    });
-
-    baseTiles.addTo(map);
-}
-
-tryTileProvider(0);
-
-// === USER LOCATION ===
+// Called from Android to set GPS position
 function setUserLocation(lat, lon) {
-    myLat = lat; myLon = lon;
-    map.setView([lat, lon], 7, {animate:true});
+    map.setView([lat, lon], 7, {animate: true});
     if (userMarker) map.removeLayer(userMarker);
     userMarker = L.circleMarker([lat, lon], {
-        radius:8, fillColor:'#58A6FF', color:'#FFF', weight:2, opacity:1, fillOpacity:0.9
-    }).addTo(map).bindPopup('Tu ubicaci\u00f3n').openPopup();
+        radius: 8, fillColor: '#58A6FF', color: '#FFF',
+        weight: 2, opacity: 1, fillOpacity: 0.9
+    }).addTo(map);
 }
 
-function goToMyLocation() {
-    map.setView([myLat, myLon], 7, {animate:true});
+function wrapPosition(position) {
+    while (position >= mapFrames.length) position -= mapFrames.length;
+    while (position < 0) position += mapFrames.length;
+    return position;
 }
 
-// === HELPERS ===
-function wrapPos(p) {
-    while (p >= mapFrames.length) p -= mapFrames.length;
-    while (p < 0) p += mapFrames.length;
-    return p;
+function formatTime(timestamp) {
+    var d = new Date(timestamp * 1000);
+    var h = ('0' + d.getHours()).slice(-2);
+    var m = ('0' + d.getMinutes()).slice(-2);
+    return h + ':' + m;
 }
 
-function fmtTime(ts) {
-    var d = new Date(ts * 1000);
-    var h = String(d.getHours()).padStart(2,'0');
-    var m = String(d.getMinutes()).padStart(2,'0');
-    var months = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
-    return d.getDate() + ' ' + months[d.getMonth()] + ' ' + h + ':' + m;
-}
-
-// === RADAR LAYERS (official RainViewer pattern) ===
 function createRadarLayer(frame) {
-    var url = apiData.host + frame.path + '/' + TILE_SIZE + '/{z}/{x}/{y}/2/1_1.png';
-    var layer = new L.TileLayer(url, {
-        tileSize: 256,
-        opacity: 0.001,
-        maxNativeZoom: 7,
-        maxZoom: 12,
-        zIndex: 500
-    });
-    layer.on('tileerror', function(e) {
-        console.error('RADAR TILE ERR: ' + e.tile.src);
-    });
-    return layer;
+    return new L.TileLayer(
+        apiData.host + frame.path + '/' + TILE_SIZE + '/{z}/{x}/{y}/2/1_1.png',
+        { tileSize: 256, opacity: 0.001, maxNativeZoom: 7, maxZoom: 12 }
+    );
 }
 
 function clearLayerCache() {
     stop();
-    for (var p in layerCache) {
-        if (parseInt(p) !== animationPosition) {
-            map.removeLayer(layerCache[p]);
-            delete layerCache[p];
+    for (var pos in layerCache) {
+        if (parseInt(pos) !== animationPosition) {
+            map.removeLayer(layerCache[pos]);
+            delete layerCache[pos];
         }
     }
 }
 
-// === ANIMATION ===
 function stop() {
     if (animationTimer) {
         clearTimeout(animationTimer);
         animationTimer = false;
-        document.getElementById('playBtn').innerHTML = '&#9654;';
+        document.getElementById("playBtn").innerHTML = "&#9654;";
         return true;
     }
     return false;
@@ -213,84 +115,80 @@ function stop() {
 
 function play() {
     animationTimer = true;
-    document.getElementById('playBtn').innerHTML = '&#9646;&#9646;';
+    document.getElementById("playBtn").innerHTML = "&#9646;&#9646;";
     showFrame(animationPosition + 1);
 }
 
-function playStop() { if (!stop()) play(); }
+function playStop() {
+    if (!stop()) play();
+}
 
-function showFrame(pos) {
+function showFrame(position) {
     if (isLoading) return;
-    pos = wrapPos(pos);
-    var frame = mapFrames[pos];
-    if (!frame) return;
 
-    var isLast = (pos === mapFrames.length - 1);
-    document.getElementById('timestamp').innerHTML =
-        (isLast ? '\uD83D\uDD34 Ahora: ' : '') + fmtTime(frame.time);
+    position = wrapPosition(position);
+    var frame = mapFrames[position];
+
+    document.getElementById("timestamp").innerHTML = formatTime(frame.time);
 
     var oldLayer = currentLayer;
 
-    if (layerCache[pos]) {
+    if (layerCache[position]) {
         if (oldLayer) oldLayer.setOpacity(0);
-        layerCache[pos].setOpacity(RADAR_OPACITY);
-        currentLayer = layerCache[pos];
-        animationPosition = pos;
+        layerCache[position].setOpacity(RADAR_OPACITY);
+        currentLayer = layerCache[position];
+        animationPosition = position;
         if (animationTimer) animationTimer = setTimeout(play, ANIMATION_DELAY_MS);
         return;
     }
 
     isLoading = true;
     var newLayer = createRadarLayer(frame);
+
     newLayer.on('load', function() {
         newLayer.setOpacity(RADAR_OPACITY);
         if (oldLayer) oldLayer.setOpacity(0);
-        layerCache[pos] = newLayer;
+        layerCache[position] = newLayer;
         currentLayer = newLayer;
-        animationPosition = pos;
+        animationPosition = position;
         isLoading = false;
         if (animationTimer) animationTimer = setTimeout(play, ANIMATION_DELAY_MS);
     });
+
     newLayer.addTo(map);
 }
 
-// === INIT ===
 function initialize(api) {
     clearLayerCache();
     currentLayer = null;
     mapFrames = [];
     animationPosition = 0;
-    layerCache = {};
 
     if (!api || !api.radar || !api.radar.past) {
-        document.getElementById('timestamp').innerHTML = 'Sin datos de radar';
+        document.getElementById("timestamp").innerHTML = "Sin datos";
         return;
     }
-    apiData = api;
+
     mapFrames = api.radar.past;
-    console.log('Radar: ' + mapFrames.length + ' frames, host: ' + api.host);
-    if (mapFrames.length > 0) {
-        showFrame(mapFrames.length - 1);
-        setTimeout(play, 1500);
-    }
+    showFrame(mapFrames.length - 1);
 }
 
 function loadApiData() {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', API_URL, true);
-    xhr.onload = function() {
-        if (xhr.status === 200) {
-            try { initialize(JSON.parse(xhr.responseText)); }
-            catch (e) { console.error('JSON error: ' + e); }
-        } else { console.error('API error: ' + xhr.status); }
+    var apiRequest = new XMLHttpRequest();
+    apiRequest.open("GET", API_URL, true);
+    apiRequest.onload = function() {
+        apiData = JSON.parse(apiRequest.response);
+        initialize(apiData);
     };
-    xhr.onerror = function() { console.error('Network error'); };
-    xhr.send();
+    apiRequest.onerror = function() {
+        document.getElementById("timestamp").innerHTML = "Error de red";
+    };
+    apiRequest.send();
 }
 
 map.on('movestart', clearLayerCache);
 loadApiData();
-setInterval(loadApiData, 300000);
 </script>
+
 </body>
 </html>

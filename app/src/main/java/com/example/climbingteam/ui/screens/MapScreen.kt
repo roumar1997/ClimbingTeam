@@ -45,6 +45,8 @@ import org.osmdroid.tileprovider.MapTileProviderBasic
 import java.net.URL
 import org.json.JSONObject
 
+data class RadarFrame(val path: String, val time: Long)
+
 @SuppressLint("MissingPermission")
 @Composable
 fun MapScreen() {
@@ -52,16 +54,20 @@ fun MapScreen() {
     var mapView by remember { mutableStateOf<MapView?>(null) }
     var locationStatus by remember { mutableStateOf("Sin ubicación") }
     var hasLocation by remember { mutableStateOf(false) }
+
+    // Radar state
+    var radarHost by remember { mutableStateOf("") }
     var radarFrames by remember { mutableStateOf<List<RadarFrame>>(emptyList()) }
     var currentFrameIdx by remember { mutableIntStateOf(0) }
-    var radarOverlay by remember { mutableStateOf<TilesOverlay?>(null) }
     var isPlaying by remember { mutableStateOf(true) }
-    var radarHost by remember { mutableStateOf("") }
     var timestampText by remember { mutableStateOf("Cargando radar...") }
-    val scope = rememberCoroutineScope()
-    val timelineScrollState = rememberScrollState()
 
-    // CartoDB Dark Matter base URLs
+    // We keep a map of overlays: frameIndex -> TilesOverlay
+    val radarOverlays = remember { mutableMapOf<Int, TilesOverlay>() }
+    var owmOverlay by remember { mutableStateOf<TilesOverlay?>(null) }
+    var selectedLayer by remember { mutableStateOf("precipitation_new") }
+    val scope = rememberCoroutineScope()
+
     val cartoUrls = remember {
         arrayOf(
             "https://a.basemaps.cartocdn.com",
@@ -70,8 +76,113 @@ fun MapScreen() {
             "https://d.basemaps.cartocdn.com"
         )
     }
+    val OWM_KEY = "e654fdb6e3791c8f7675db2561ae2b5f"
 
-    // Configure OSMDroid
+    val layerOptions = remember {
+        listOf(
+            "precipitation_new" to "🌧 Lluvia",
+            "temp_new"          to "🌡 Temp",
+            "clouds_new"        to "☁ Nubes",
+            "wind_new"          to "💨 Viento",
+            "pressure_new"      to "🌊 Presión"
+        )
+    }
+
+    // Legend data: list of (color, label) for each OWM layer
+    data class LegendStop(val color: Color, val label: String)
+
+    val legendData = remember {
+        mapOf(
+            "precipitation_new" to listOf(
+                LegendStop(Color(0x00000000), "0"),
+                LegendStop(Color(0xFF9BF3F0), "0.5"),
+                LegendStop(Color(0xFF00B4D8), "1"),
+                LegendStop(Color(0xFF0077B6), "2"),
+                LegendStop(Color(0xFF2DC653), "4"),
+                LegendStop(Color(0xFFFFD60A), "10"),
+                LegendStop(Color(0xFFFFA500), "20"),
+                LegendStop(Color(0xFFFF4500), "40"),
+                LegendStop(Color(0xFFDC143C), "100"),
+                LegendStop(Color(0xFF8B008B), "200 mm")
+            ),
+            "temp_new" to listOf(
+                LegendStop(Color(0xFF9915DB), "-40"),
+                LegendStop(Color(0xFF4A24DB), "-30"),
+                LegendStop(Color(0xFF2050EB), "-20"),
+                LegendStop(Color(0xFF21A0E8), "-10"),
+                LegendStop(Color(0xFF43D0C8), "0"),
+                LegendStop(Color(0xFF6BD86B), "10"),
+                LegendStop(Color(0xFFCDE838), "20"),
+                LegendStop(Color(0xFFF5B800), "25"),
+                LegendStop(Color(0xFFFF6600), "30"),
+                LegendStop(Color(0xFFFF0000), "40 °C")
+            ),
+            "clouds_new" to listOf(
+                LegendStop(Color(0x00FFFFFF), "0"),
+                LegendStop(Color(0x33FFFFFF), "10"),
+                LegendStop(Color(0x55FFFFFF), "25"),
+                LegendStop(Color(0x88FFFFFF), "50"),
+                LegendStop(Color(0xAAC8C8C8), "75"),
+                LegendStop(Color(0xDD969696), "100 %")
+            ),
+            "wind_new" to listOf(
+                LegendStop(Color(0xFFFFFFFF), "1"),
+                LegendStop(Color(0xFFAEF1F9), "5"),
+                LegendStop(Color(0xFF96C7EC), "15"),
+                LegendStop(Color(0xFF6BB3E0), "25"),
+                LegendStop(Color(0xFF4E8EC4), "50"),
+                LegendStop(Color(0xFF3467A8), "100"),
+                LegendStop(Color(0xFFFFE978), "150"),
+                LegendStop(Color(0xFFFF6600), "200 m/s")
+            ),
+            "pressure_new" to listOf(
+                LegendStop(Color(0xFF0000CC), "950"),
+                LegendStop(Color(0xFF2255CC), "980"),
+                LegendStop(Color(0xFF44AACC), "1000"),
+                LegendStop(Color(0xFF66DDAA), "1010"),
+                LegendStop(Color(0xFFCCEE66), "1020"),
+                LegendStop(Color(0xFFFFCC00), "1030"),
+                LegendStop(Color(0xFFFF6600), "1040"),
+                LegendStop(Color(0xFFFF0000), "1070 hPa")
+            )
+        )
+    }
+
+    // Add/replace OWM background layer (colorful full-coverage weather)
+    fun applyWeatherLayer(layer: String) {
+        val mv = mapView ?: return
+        // Remove old OWM overlay if present
+        owmOverlay?.let { mv.overlays.remove(it) }
+
+        val owmTileSource = object : OnlineTileSourceBase(
+            "OWM_$layer", 0, 12, 256, ".png",
+            arrayOf("https://tile.openweathermap.org")
+        ) {
+            override fun getTileURLString(pMapTileIndex: Long): String {
+                val z = MapTileIndex.getZoom(pMapTileIndex)
+                val x = MapTileIndex.getX(pMapTileIndex)
+                val y = MapTileIndex.getY(pMapTileIndex)
+                return "https://tile.openweathermap.org/map/$layer/$z/$x/$y.png?appid=$OWM_KEY"
+            }
+        }
+        val provider = MapTileProviderBasic(context, owmTileSource)
+        val newOverlay = TilesOverlay(provider, context)
+        newOverlay.loadingBackgroundColor = AndroidColor.TRANSPARENT
+        newOverlay.loadingLineColor = AndroidColor.TRANSPARENT
+        // Insert at position 0 (right above base tiles, below radar)
+        mv.overlays.add(0, newOverlay)
+        owmOverlay = newOverlay
+        mv.invalidate()
+    }
+
+    // Apply weather layer when selected or map ready
+    LaunchedEffect(selectedLayer, mapView) {
+        if (mapView != null) {
+            withContext(Dispatchers.Main) { applyWeatherLayer(selectedLayer) }
+        }
+    }
+
+    // Init osmdroid config
     LaunchedEffect(Unit) {
         Configuration.getInstance().apply {
             userAgentValue = "ClimbingTeams/1.0"
@@ -79,7 +190,7 @@ fun MapScreen() {
         }
     }
 
-    // Load RainViewer data
+    // Load RainViewer API data
     LaunchedEffect(Unit) {
         withContext(Dispatchers.IO) {
             try {
@@ -90,24 +201,66 @@ fun MapScreen() {
                 val past = data.getJSONObject("radar").getJSONArray("past")
                 for (i in 0 until past.length()) {
                     val f = past.getJSONObject(i)
-                    frames.add(RadarFrame(path = f.getString("path"), time = f.getLong("time"), isNowcast = false))
+                    frames.add(RadarFrame(path = f.getString("path"), time = f.getLong("time")))
                 }
-                // Also load nowcast frames if available
-                try {
-                    val nowcast = data.getJSONObject("radar").getJSONArray("nowcast")
-                    for (i in 0 until nowcast.length()) {
-                        val f = nowcast.getJSONObject(i)
-                        frames.add(RadarFrame(path = f.getString("path"), time = f.getLong("time"), isNowcast = true))
-                    }
-                } catch (_: Exception) { }
-
                 radarHost = host
                 radarFrames = frames
-                currentFrameIdx = frames.indexOfLast { !it.isNowcast }.coerceAtLeast(0)
-                Log.d("RadarMap", "Loaded ${frames.size} frames (${frames.count { it.isNowcast }} nowcast) from $host")
+                currentFrameIdx = (frames.size - 1).coerceAtLeast(0)
+                Log.d("RadarMap", "Loaded ${frames.size} frames from $host")
             } catch (e: Exception) {
-                Log.e("RadarMap", "Error loading radar data", e)
+                Log.e("RadarMap", "Error loading radar", e)
                 withContext(Dispatchers.Main) { timestampText = "Error al cargar radar" }
+            }
+        }
+    }
+
+    // Show the current frame overlay on the map, hide all others
+    fun showRadarFrame(idx: Int) {
+        val mv = mapView ?: return
+        if (radarFrames.isEmpty() || radarHost.isEmpty()) return
+        val frame = radarFrames[idx]
+
+        // Update timestamp
+        val date = java.util.Date(frame.time * 1000)
+        val sdf = java.text.SimpleDateFormat("d MMM · HH:mm", java.util.Locale("es"))
+        val isLast = idx == radarFrames.size - 1
+        timestampText = if (isLast) "🔴 Ahora: ${sdf.format(date)}" else sdf.format(date)
+
+        // Hide ALL existing radar overlays
+        radarOverlays.values.forEach { overlay ->
+            overlay.setEnabled(false)
+        }
+
+        // Create overlay for this frame if not cached
+        if (!radarOverlays.containsKey(idx)) {
+            val tileSource = object : OnlineTileSourceBase(
+                "RainViewer_$idx", 0, 7, 256, ".png", arrayOf(radarHost)
+            ) {
+                override fun getTileURLString(pMapTileIndex: Long): String {
+                    val z = MapTileIndex.getZoom(pMapTileIndex)
+                    val x = MapTileIndex.getX(pMapTileIndex)
+                    val y = MapTileIndex.getY(pMapTileIndex)
+                    return "$radarHost${frame.path}/512/$z/$x/$y/2/1_1.png"
+                }
+            }
+            val provider = MapTileProviderBasic(context, tileSource)
+            val overlay = TilesOverlay(provider, context)
+            overlay.loadingBackgroundColor = AndroidColor.TRANSPARENT
+            overlay.loadingLineColor = AndroidColor.TRANSPARENT
+            radarOverlays[idx] = overlay
+            mv.overlays.add(overlay)
+        }
+
+        // Show the current frame
+        radarOverlays[idx]?.setEnabled(true)
+        mv.invalidate()
+    }
+
+    // When frame index changes, update the visible overlay
+    LaunchedEffect(currentFrameIdx, radarFrames, radarHost) {
+        if (radarFrames.isNotEmpty() && radarHost.isNotEmpty() && mapView != null) {
+            withContext(Dispatchers.Main) {
+                showRadarFrame(currentFrameIdx)
             }
         }
     }
@@ -116,72 +269,45 @@ fun MapScreen() {
     LaunchedEffect(isPlaying, radarFrames) {
         if (isPlaying && radarFrames.isNotEmpty()) {
             while (isPlaying) {
-                delay(700)
+                delay(600)
                 currentFrameIdx = (currentFrameIdx + 1) % radarFrames.size
             }
         }
     }
 
-    // Scroll timeline to current frame
+    // Pre-cache nearby frames
     LaunchedEffect(currentFrameIdx, radarFrames) {
-        if (radarFrames.isNotEmpty()) {
-            val frameWidth = 52 // dp approx
-            val target = (currentFrameIdx * frameWidth).coerceAtLeast(0)
-            timelineScrollState.animateScrollTo(target)
-        }
-    }
-
-    // Update radar overlay when frame changes
-    LaunchedEffect(currentFrameIdx, radarFrames, radarHost) {
-        if (radarFrames.isEmpty() || radarHost.isEmpty()) return@LaunchedEffect
-        val frame = radarFrames[currentFrameIdx]
-        val isLast = currentFrameIdx == radarFrames.indexOfLast { !it.isNowcast }
-
-        // Update timestamp
-        val date = java.util.Date(frame.time * 1000)
-        val sdf = java.text.SimpleDateFormat("d MMM · HH:mm", java.util.Locale("es"))
-        timestampText = when {
-            frame.isNowcast -> "📡 Predicción: " + sdf.format(date)
-            isLast -> "🔴 Ahora: " + sdf.format(date)
-            else -> sdf.format(date)
-        }
-
-        val mv = mapView ?: return@LaunchedEffect
-        withContext(Dispatchers.Main) {
-            radarOverlay?.let { mv.overlays.remove(it) }
-
-            val radarTileSource = object : OnlineTileSourceBase(
-                "RainViewer_${frame.time}", 0, 7, 256, ".png", arrayOf(radarHost)
-            ) {
-                override fun getTileURLString(pMapTileIndex: Long): String {
-                    val z = MapTileIndex.getZoom(pMapTileIndex)
-                    val x = MapTileIndex.getX(pMapTileIndex)
-                    val y = MapTileIndex.getY(pMapTileIndex)
-                    return "$radarHost${frame.path}/256/$z/$x/$y/6/1_1.png"
+        if (radarFrames.isNotEmpty() && mapView != null) {
+            // Pre-create overlays for next 2 frames
+            withContext(Dispatchers.Main) {
+                for (offset in 1..2) {
+                    val nextIdx = (currentFrameIdx + offset) % radarFrames.size
+                    if (!radarOverlays.containsKey(nextIdx)) {
+                        val frame = radarFrames[nextIdx]
+                        val tileSource = object : OnlineTileSourceBase(
+                            "RainViewer_$nextIdx", 0, 7, 256, ".png", arrayOf(radarHost)
+                        ) {
+                            override fun getTileURLString(pMapTileIndex: Long): String {
+                                val z = MapTileIndex.getZoom(pMapTileIndex)
+                                val x = MapTileIndex.getX(pMapTileIndex)
+                                val y = MapTileIndex.getY(pMapTileIndex)
+                                return "$radarHost${frame.path}/512/$z/$x/$y/2/1_1.png"
+                            }
+                        }
+                        val provider = MapTileProviderBasic(context, tileSource)
+                        val overlay = TilesOverlay(provider, context)
+                        overlay.loadingBackgroundColor = AndroidColor.TRANSPARENT
+                        overlay.loadingLineColor = AndroidColor.TRANSPARENT
+                        overlay.setEnabled(false)
+                        radarOverlays[nextIdx] = overlay
+                        mapView?.overlays?.add(overlay)
+                    }
                 }
             }
-
-            val tileProvider = MapTileProviderBasic(context, radarTileSource)
-            val overlay = TilesOverlay(tileProvider, context)
-            overlay.loadingBackgroundColor = AndroidColor.TRANSPARENT
-            overlay.loadingLineColor = AndroidColor.TRANSPARENT
-            // 75% opacity via ColorMatrix
-            overlay.setColorFilter(
-                android.graphics.ColorMatrixColorFilter(
-                    floatArrayOf(
-                        1f, 0f, 0f, 0f, 0f,
-                        0f, 1f, 0f, 0f, 0f,
-                        0f, 0f, 1f, 0f, 0f,
-                        0f, 0f, 0f, 0.75f, 0f
-                    )
-                )
-            )
-            radarOverlay = overlay
-            mv.overlays.add(overlay)
-            mv.invalidate()
         }
     }
 
+    // GPS
     @SuppressLint("MissingPermission")
     fun getAndSendLocation() {
         val lm = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -229,14 +355,13 @@ fun MapScreen() {
         ) else getAndSendLocation()
     }
 
-    // ── Full-screen map layout (Windy style) ──────────────────────────────
+    // ── UI Layout ──────────────────────────────────────────
     Box(modifier = Modifier.fillMaxSize().background(Color(0xFF0D1117))) {
 
-        // ── Base map ──────────────────────────────────────────────────────
+        // ── Base map (CartoDB Dark Matter) ──────────────────
         AndroidView(
             factory = { ctx ->
                 MapView(ctx).apply {
-                    // CartoDB Dark Matter tile source
                     val darkTileSource = object : OnlineTileSourceBase(
                         "CartoDB.DarkMatter", 0, 19, 256, ".png", cartoUrls
                     ) {
@@ -252,24 +377,13 @@ fun MapScreen() {
                     setMultiTouchControls(true)
                     controller.setZoom(6.0)
                     controller.setCenter(GeoPoint(40.4, -3.7))
-                    // No color filter - CartoDB Dark Matter is already Windy-like
                     mapView = this
                 }
             },
             modifier = Modifier.fillMaxSize()
         )
 
-        // ── Edge vignette (depth effect like Windy) ───────────────────────
-        Box(
-            modifier = Modifier.fillMaxSize().background(
-                Brush.radialGradient(
-                    colors = listOf(Color.Transparent, Color(0x1A0D1117), Color(0x330D1117)),
-                    radius = 1200f
-                )
-            )
-        )
-
-        // ── Floating header (gradient fade from top) ──────────────────────
+        // ── Floating header ────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -313,7 +427,6 @@ fun MapScreen() {
                     )
                 }
 
-                // Location badge
                 Row(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
@@ -339,47 +452,84 @@ fun MapScreen() {
             }
         }
 
-        // ── Precipitation legend (top right, floating) ────────────────────
-        Column(
+        // ── Layer selector chips ─────────────────────────────
+        Row(
             modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 100.dp, end = 12.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xCC0D1117))
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .align(Alignment.TopStart)
+                .padding(top = 110.dp, start = 8.dp, end = 8.dp)
+                .fillMaxWidth()
+                .horizontalScroll(rememberScrollState()),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
-            Text(
-                "mm/h",
-                style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                color = ClimbingColors.textTertiary
-            )
-            Spacer(Modifier.height(4.dp))
-            // Vertical gradient legend (Windy color scheme)
-            Box(
-                modifier = Modifier
-                    .width(10.dp)
-                    .height(60.dp)
-                    .clip(RoundedCornerShape(3.dp))
-                    .background(
-                        Brush.verticalGradient(
-                            listOf(
-                                Color(0xFFFF2222),
-                                Color(0xFFFF8C00),
-                                Color(0xFFFFFF00),
-                                Color(0xFF00C800),
-                                Color(0xFF0096FF),
-                                Color(0xFF96D2FA)
-                            )
+            layerOptions.forEach { (layerId, label) ->
+                val isSelected = selectedLayer == layerId
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(
+                            if (isSelected) ClimbingColors.primary.copy(alpha = 0.25f)
+                            else Color(0xCC161B22)
                         )
+                        .border(
+                            1.dp,
+                            if (isSelected) ClimbingColors.primary.copy(alpha = 0.6f)
+                            else Color(0xFF30363D),
+                            RoundedCornerShape(16.dp)
+                        )
+                        .clickable { selectedLayer = layerId }
+                        .padding(horizontal = 12.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        label,
+                        fontSize = 12.sp,
+                        color = if (isSelected) ClimbingColors.primary else ClimbingColors.textSecondary,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
                     )
-            )
-            Spacer(Modifier.height(2.dp))
-            Text("H", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = Color(0xFFFF2222))
-            Text("L", style = MaterialTheme.typography.labelSmall.copy(fontSize = 8.sp), color = Color(0xFF96D2FA))
+                }
+            }
         }
 
-        // ── Location FAB (bottom right) ────────────────────────────────────
+        // ── Color legend ─────────────────────────────────────
+        val currentLegend = legendData[selectedLayer] ?: emptyList()
+        if (currentLegend.isNotEmpty()) {
+            Column(
+                modifier = Modifier
+                    .align(Alignment.CenterEnd)
+                    .padding(end = 10.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(Color(0xCC0D1117))
+                    .border(1.dp, Color(0xFF30363D), RoundedCornerShape(12.dp))
+                    .padding(horizontal = 8.dp, vertical = 10.dp),
+                verticalArrangement = Arrangement.spacedBy(2.dp)
+            ) {
+                currentLegend.forEach { stop ->
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(14.dp, 10.dp)
+                                .clip(RoundedCornerShape(2.dp))
+                                .background(stop.color)
+                                .then(
+                                    if (stop.color.alpha < 0.1f)
+                                        Modifier.border(0.5.dp, Color(0xFF30363D), RoundedCornerShape(2.dp))
+                                    else Modifier
+                                )
+                        )
+                        Text(
+                            stop.label,
+                            fontSize = 9.sp,
+                            color = ClimbingColors.textSecondary,
+                            lineHeight = 11.sp
+                        )
+                    }
+                }
+            }
+        }
+
+        // ── Location FAB ───────────────────────────────────
         Box(
             modifier = Modifier
                 .align(Alignment.BottomEnd)
@@ -398,7 +548,7 @@ fun MapScreen() {
             )
         }
 
-        // ── Bottom Windy-style timeline control ───────────────────────────
+        // ── Bottom controls ────────────────────────────────
         Column(
             modifier = Modifier
                 .align(Alignment.BottomCenter)
@@ -410,118 +560,41 @@ fun MapScreen() {
                 )
                 .padding(bottom = 16.dp, top = 12.dp)
         ) {
-            // Timeline scrubber row
-            if (radarFrames.isNotEmpty()) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(timelineScrollState)
-                        .padding(horizontal = 60.dp, vertical = 4.dp),
-                    horizontalArrangement = Arrangement.spacedBy(2.dp),
-                    verticalAlignment = Alignment.Bottom
-                ) {
-                    radarFrames.forEachIndexed { idx, frame ->
-                        val isCurrent = idx == currentFrameIdx
-                        val timeFmt = java.text.SimpleDateFormat("HH:mm", java.util.Locale.getDefault())
-                            .format(java.util.Date(frame.time * 1000))
-
-                        Column(
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            modifier = Modifier
-                                .width(50.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .background(
-                                    if (isCurrent) ClimbingColors.primary.copy(alpha = 0.15f)
-                                    else Color.Transparent
-                                )
-                                .clickable {
-                                    isPlaying = false
-                                    currentFrameIdx = idx
-                                }
-                                .padding(horizontal = 4.dp, vertical = 4.dp)
-                        ) {
-                            // Frame indicator bar
-                            Box(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(if (isCurrent) 4.dp else 2.dp)
-                                    .clip(RoundedCornerShape(2.dp))
-                                    .background(
-                                        when {
-                                            isCurrent -> ClimbingColors.primary
-                                            frame.isNowcast -> ClimbingColors.optimo.copy(alpha = 0.5f)
-                                            else -> ClimbingColors.textTertiary.copy(alpha = 0.4f)
-                                        }
-                                    )
-                            )
-                            Spacer(Modifier.height(3.dp))
-                            Text(
-                                timeFmt,
-                                fontSize = 9.sp,
-                                color = when {
-                                    isCurrent -> ClimbingColors.primary
-                                    frame.isNowcast -> ClimbingColors.optimo.copy(alpha = 0.8f)
-                                    else -> ClimbingColors.textTertiary
-                                },
-                                fontWeight = if (isCurrent) FontWeight.Bold else FontWeight.Normal
-                            )
-                            if (frame.isNowcast && isCurrent) {
-                                Text("▶", fontSize = 7.sp, color = ClimbingColors.optimo)
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Control buttons
+            // Play controls
             Row(
-                modifier = Modifier
-                    .align(Alignment.CenterHorizontally)
-                    .padding(horizontal = 24.dp),
+                modifier = Modifier.align(Alignment.CenterHorizontally).padding(horizontal = 24.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Prev
                 IconButton(
                     onClick = {
                         isPlaying = false
                         currentFrameIdx = if (currentFrameIdx > 0) currentFrameIdx - 1
                         else radarFrames.size - 1
                     },
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
+                    modifier = Modifier.size(36.dp).clip(CircleShape)
                         .background(ClimbingColors.surfaceVariant.copy(alpha = 0.7f))
                 ) {
                     Icon(Icons.Default.SkipPrevious, null, tint = ClimbingColors.textPrimary, modifier = Modifier.size(18.dp))
                 }
 
-                // Play/Pause (larger)
                 Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(ClimbingColors.primary)
-                        .clickable { isPlaying = !isPlaying },
+                    modifier = Modifier.size(48.dp).clip(CircleShape)
+                        .background(ClimbingColors.primary).clickable { isPlaying = !isPlaying },
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        null,
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
+                        null, tint = Color.White, modifier = Modifier.size(24.dp)
                     )
                 }
 
-                // Next
                 IconButton(
                     onClick = {
                         isPlaying = false
                         currentFrameIdx = (currentFrameIdx + 1) % radarFrames.size.coerceAtLeast(1)
                     },
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
+                    modifier = Modifier.size(36.dp).clip(CircleShape)
                         .background(ClimbingColors.surfaceVariant.copy(alpha = 0.7f))
                 ) {
                     Icon(Icons.Default.SkipNext, null, tint = ClimbingColors.textPrimary, modifier = Modifier.size(18.dp))
@@ -529,33 +602,18 @@ fun MapScreen() {
 
                 Spacer(Modifier.width(8.dp))
 
-                // Nowcast indicator
-                if (radarFrames.any { it.isNowcast }) {
-                    Row(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(ClimbingColors.optimo.copy(alpha = 0.15f))
-                            .padding(horizontal = 8.dp, vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Box(
-                            modifier = Modifier.size(6.dp).clip(CircleShape)
-                                .background(ClimbingColors.optimo)
-                        )
-                        Spacer(Modifier.width(4.dp))
-                        Text(
-                            "Predicción",
-                            fontSize = 10.sp,
-                            color = ClimbingColors.optimo,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                // Frame counter
+                if (radarFrames.isNotEmpty()) {
+                    Text(
+                        "${currentFrameIdx + 1}/${radarFrames.size}",
+                        fontSize = 11.sp,
+                        color = ClimbingColors.textTertiary
+                    )
                 }
             }
 
-            // Attribution
             Text(
-                "© CARTO · © OpenStreetMap · RainViewer",
+                "© CARTO · © OSM · RainViewer · OWM",
                 fontSize = 8.sp,
                 color = ClimbingColors.textTertiary.copy(alpha = 0.5f),
                 modifier = Modifier.align(Alignment.CenterHorizontally).padding(top = 4.dp)
@@ -563,5 +621,3 @@ fun MapScreen() {
         }
     }
 }
-
-data class RadarFrame(val path: String, val time: Long, val isNowcast: Boolean = false)

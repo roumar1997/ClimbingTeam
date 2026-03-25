@@ -1,9 +1,15 @@
 package com.example.climbingteam.composables
 
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.example.climbingteam.ui.theme.ClimbingColors
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -100,7 +106,55 @@ fun HostNavigator(
                 }
 
                 composable("sectors") {
-                    SectorFinderScreen(viewModel = sectorVm)
+                    SectorFinderScreen(
+                        viewModel = sectorVm,
+                        onSectorClick = { result ->
+                            val lat = result.sector.lat
+                            val lon = result.sector.lon
+                            if (lat != null && lon != null) {
+                                weatherVm.loadSectorPreview(lat, lon, result.sector.nombre)
+                                navController.navigate("sector_preview")
+                            } else {
+                                // Sin GPS: mostrar detalle básico
+                                sectorVm.selectSector(result)
+                                navController.navigate("sector_detail")
+                            }
+                        }
+                    )
+                }
+
+                composable("sector_preview") {
+                    val previewWeather by weatherVm.sectorPreview.collectAsState()
+                    if (previewWeather == null) {
+                        // Cargando
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(ClimbingColors.background),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            CircularProgressIndicator(color = ClimbingColors.primary)
+                        }
+                    } else {
+                        DetailScreen(
+                            viewModel = weatherVm,
+                            overrideWeather = previewWeather,
+                            onBack = { navController.popBackStack() },
+                            onViewProfile = { userId ->
+                                navController.navigate("profile/$userId")
+                            }
+                        )
+                    }
+                }
+
+                composable("sector_detail") {
+                    val selected by sectorVm.selectedSector.collectAsState()
+                    selected?.let { result ->
+                        SectorDetailScreen(
+                            result = result,
+                            onBack = { navController.popBackStack() }
+                        )
+                    }
                 }
 
                 composable("map") {
