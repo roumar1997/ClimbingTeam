@@ -12,21 +12,29 @@ import com.example.climbingteam.composables.specifics.ScreenLogin
 import com.example.climbingteam.ui.components.ClimbingBottomNav
 import com.example.climbingteam.ui.screens.*
 import com.example.climbingteam.ui.theme.ClimbingTeamTheme
+import com.example.climbingteam.repository.ProfileRepository
 import com.example.climbingteam.viewmodels.AuthViewModel
+import com.example.climbingteam.viewmodels.ChatViewModel
 import com.example.climbingteam.viewmodels.SectorViewModel
 import com.example.climbingteam.viewmodels.WeatherViewModel
+import kotlinx.coroutines.launch
 
 @Composable
-fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel, sectorVm: SectorViewModel) {
+fun HostNavigator(
+    vm: AuthViewModel,
+    weatherVm: WeatherViewModel,
+    sectorVm: SectorViewModel,
+    chatVm: ChatViewModel
+) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route ?: "compare"
+    val scope = rememberCoroutineScope()
 
     val isLoggedIn = vm.user.collectAsState().value != null
     val startDest = if (isLoggedIn) "compare" else "login"
 
-    // Routes that show bottom nav
-    val bottomNavRoutes = setOf("compare", "favorites", "sectors", "map", "settings")
+    val bottomNavRoutes = setOf("compare", "favorites", "sectors", "map", "messages", "settings")
     val showBottomNav = currentRoute in bottomNavRoutes
 
     ClimbingTeamTheme {
@@ -99,6 +107,36 @@ fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel, sectorVm: Sect
                     MapScreen()
                 }
 
+                composable("messages") {
+                    ConversationsScreen(
+                        viewModel = chatVm,
+                        onOpenChat = { convId, otherName ->
+                            navController.navigate("chat/$convId/${otherName.encodeUrl()}")
+                        },
+                        onOpenNewChat = { otherUserId, otherProfile ->
+                            scope.launch {
+                                val convId = chatVm.startConversation(otherUserId, otherProfile)
+                                if (convId.isNotEmpty()) {
+                                    val displayName = otherProfile.displayName
+                                        .ifEmpty { otherProfile.email.substringBefore("@") }
+                                    navController.navigate("chat/$convId/${displayName.encodeUrl()}")
+                                }
+                            }
+                        }
+                    )
+                }
+
+                composable("chat/{convId}/{otherName}") { backStackEntry ->
+                    val convId = backStackEntry.arguments?.getString("convId") ?: ""
+                    val otherName = backStackEntry.arguments?.getString("otherName")?.decodeUrl() ?: ""
+                    ChatScreen(
+                        viewModel = chatVm,
+                        conversationId = convId,
+                        otherName = otherName,
+                        onBack = { navController.popBackStack() }
+                    )
+                }
+
                 composable("settings") {
                     SettingsScreen(
                         authViewModel = vm,
@@ -114,15 +152,34 @@ fun HostNavigator(vm: AuthViewModel, weatherVm: WeatherViewModel, sectorVm: Sect
                     )
                 }
 
-                // Profile screen - "me" for own profile, userId for others
                 composable("profile/{userId}") { backStackEntry ->
                     val userId = backStackEntry.arguments?.getString("userId")
                     ProfileScreen(
                         userId = if (userId == "me") null else userId,
-                        onBack = { navController.popBackStack() }
+                        onBack = { navController.popBackStack() },
+                        onSendMessage = { otherUserId ->
+                            scope.launch {
+                                // Fetch their profile to get the display name and photo
+                                val otherProfile = ProfileRepository.getProfile(otherUserId)
+                                val convId = chatVm.startConversation(otherUserId, otherProfile)
+                                if (convId.isNotEmpty()) {
+                                    val displayName = otherProfile?.displayName
+                                        ?.ifEmpty { otherProfile.email.substringBefore("@") }
+                                        ?: "Escalador"
+                                    navController.navigate("chat/$convId/${displayName.encodeUrl()}")
+                                }
+                            }
+                        }
                     )
                 }
             }
         }
     }
 }
+
+// Simple URL encoding helpers for nav args
+private fun String.encodeUrl(): String =
+    java.net.URLEncoder.encode(this, "UTF-8")
+
+private fun String.decodeUrl(): String =
+    java.net.URLDecoder.decode(this, "UTF-8")

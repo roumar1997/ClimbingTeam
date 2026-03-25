@@ -2,6 +2,7 @@ package com.example.climbingteam.ui.components
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Chat
 import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Map
@@ -23,6 +24,7 @@ enum class BottomNavItem(
     FAVORITES("favorites", "Favoritos", Icons.Default.Favorite),
     SECTORS("sectors", "Sectores", Icons.Default.Terrain),
     MAP("map", "Mapa", Icons.Default.Map),
+    MESSAGES("messages", "Mensajes", Icons.Default.Chat),
     SETTINGS("settings", "Ajustes", Icons.Default.Settings)
 }
 
@@ -44,14 +46,11 @@ fun ClimbingBottomNav(
                     Icon(
                         item.icon,
                         contentDescription = item.label,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(22.dp)
                     )
                 },
                 label = {
-                    Text(
-                        item.label,
-                        style = MaterialTheme.typography.labelSmall
-                    )
+                    Text(item.label, style = MaterialTheme.typography.labelSmall)
                 },
                 colors = NavigationBarItemDefaults.colors(
                     selectedIconColor = ClimbingColors.bottomNavSelected,

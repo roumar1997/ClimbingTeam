@@ -1,15 +1,18 @@
 package com.example.climbingteam.repository
 
 import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
+import android.util.Base64
+import android.util.Log
 import com.example.climbingteam.data.UserProfile
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.util.UUID
+import java.io.ByteArrayOutputStream
 
 object ProfileRepository {
     private val db = FirebaseFirestore.getInstance()
@@ -35,7 +38,7 @@ object ProfileRepository {
                 )
             } else null
         } catch (e: Exception) {
-            android.util.Log.e("ProfileRepo", "Error getting profile", e)
+            Log.e("ProfileRepo", "Error getting profile", e)
             null
         }
     }
@@ -44,7 +47,6 @@ object ProfileRepository {
         val uid = auth.currentUser?.uid ?: return null
         val existing = getProfile(uid)
         if (existing != null) {
-            // Always refresh review count
             val count = countUserReviews(uid)
             return if (count != existing.reviewCount) {
                 val updated = existing.copy(reviewCount = count)
@@ -52,7 +54,6 @@ object ProfileRepository {
                 updated
             } else existing
         }
-        // Create default profile
         val count = countUserReviews(uid)
         val defaultProfile = UserProfile(
             userId = uid,
@@ -69,61 +70,96 @@ object ProfileRepository {
             profilesCollection().document(uid).set(profile.toMap()).await()
             true
         } catch (e: Exception) {
-            android.util.Log.e("ProfileRepo", "Error saving profile", e)
+            Log.e("ProfileRepo", "Error saving profile", e)
             false
         }
     }
 
     /**
-     * Copy image from picker URI to app internal storage and save path in Firestore.
-     * This avoids needing Firebase Storage (which requires extra console setup).
+     * Compresses the photo to 200×200px JPEG and stores it as a base64 data URI
+     * directly in Firestore — free, no Firebase Storage needed, visible to all users.
      */
     suspend fun saveProfilePhoto(context: Context, imageUri: Uri): String? {
         return withContext(Dispatchers.IO) {
             try {
                 val uid = auth.currentUser?.uid ?: return@withContext null
 
-                // Create profile photos directory
-                val photosDir = File(context.filesDir, "profile_photos")
-                if (!photosDir.exists()) photosDir.mkdirs()
+                // 1. Decode original bitmap
+                val inputStream = context.contentResolver.openInputStream(imageUri)
+                    ?: return@withContext null
+                val original = BitmapFactory.decodeStream(inputStream)
+                inputStream.close()
 
-                // Delete old photo if exists
-                photosDir.listFiles()?.filter { it.name.startsWith(uid) }?.forEach { it.delete() }
+                if (original == null) return@withContext null
 
-                // Copy image to internal storage
-                val extension = "jpg"
-                val photoFile = File(photosDir, "${uid}_${UUID.randomUUID()}.$extension")
-                context.contentResolver.openInputStream(imageUri)?.use { input ->
-                    photoFile.outputStream().use { output ->
-                        input.copyTo(output)
-                    }
-                } ?: return@withContext null
+                // 2. Scale down to max 200×200 keeping aspect ratio
+                val maxSize = 200
+                val scale = maxSize.toFloat() / maxOf(original.width, original.height).toFloat()
+                val newW = (original.width * scale).toInt().coerceAtLeast(1)
+                val newH = (original.height * scale).toInt().coerceAtLeast(1)
+                val scaled = Bitmap.createScaledBitmap(original, newW, newH, true)
+                original.recycle()
 
-                val localPath = photoFile.absolutePath
+                // 3. Compress to JPEG quality 65 → roughly 8–20KB
+                val output = ByteArrayOutputStream()
+                scaled.compress(Bitmap.CompressFormat.JPEG, 65, output)
+                scaled.recycle()
 
-                // Update Firestore with local path
-                profilesCollection().document(uid).update("photoUrl", localPath).await()
+                // 4. Encode to base64 data URI
+                val bytes = output.toByteArray()
+                val b64 = Base64.encodeToString(bytes, Base64.NO_WRAP)
+                val dataUri = "data:image/jpeg;base64,$b64"
 
-                localPath
+                // 5. Save to Firestore (free, visible to all users)
+                profilesCollection().document(uid).update("photoUrl", dataUri).await()
+
+                dataUri
             } catch (e: Exception) {
-                android.util.Log.e("ProfileRepo", "Error saving photo", e)
+                Log.e("ProfileRepo", "Error saving photo", e)
                 null
             }
         }
     }
 
     /**
-     * Count user's reviews from Firestore
+     * Search users by display name (case-insensitive prefix match).
+     * Firestore doesn't support true full-text search, so we fetch all profiles
+     * and filter locally. For a small user base this is fine.
      */
+    suspend fun searchUsers(query: String): List<UserProfile> {
+        if (query.length < 2) return emptyList()
+        val myId = currentUserId()
+        return try {
+            val snapshot = profilesCollection().get().await()
+            val q = query.lowercase()
+            snapshot.documents.mapNotNull { doc ->
+                val uid = doc.getString("userId") ?: doc.id
+                if (uid == myId) return@mapNotNull null
+                val name = doc.getString("displayName") ?: ""
+                val email = doc.getString("email") ?: ""
+                val matchesName = name.lowercase().contains(q)
+                val matchesEmail = email.lowercase().contains(q)
+                if (!matchesName && !matchesEmail) return@mapNotNull null
+                UserProfile(
+                    userId = uid,
+                    email = email,
+                    displayName = name,
+                    favoriteSector = doc.getString("favoriteSector") ?: "",
+                    favoriteRockType = doc.getString("favoriteRockType") ?: "",
+                    maxClimbingGrade = doc.getString("maxClimbingGrade") ?: "",
+                    photoUrl = doc.getString("photoUrl") ?: "",
+                    reviewCount = doc.getLong("reviewCount")?.toInt() ?: 0
+                )
+            }
+        } catch (e: Exception) {
+            Log.e("ProfileRepo", "Error searching users", e)
+            emptyList()
+        }
+    }
+
     suspend fun countUserReviews(userId: String): Int {
         return try {
-            val snapshot = db.collection("reviews")
-                .whereEqualTo("userId", userId)
-                .get()
-                .await()
-            snapshot.size()
-        } catch (e: Exception) {
-            0
-        }
+            db.collection("reviews").whereEqualTo("userId", userId).get().await().size()
+        } catch (_: Exception) { 0 }
     }
 }

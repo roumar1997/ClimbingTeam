@@ -21,15 +21,27 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.*
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialException
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.example.climbingteam.ui.theme.ClimbingColors
+import com.example.climbingteam.viewmodels.AuthState
 import com.example.climbingteam.viewmodels.AuthViewModel
+import com.google.android.libraries.identity.googleid.GetGoogleIdOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
+
+private const val GOOGLE_WEB_CLIENT_ID =
+    "220128782759-qp3ncrakne4gv3clbvkumrm9qjvgd7ej.apps.googleusercontent.com"
 
 @Composable
 fun ScreenLogin(
@@ -38,8 +50,10 @@ fun ScreenLogin(
 ) {
     val showLoginForm = rememberSaveable { mutableStateOf(true) }
     val error = rememberSaveable { mutableStateOf<String?>(null) }
+    val authState by vm.authState.collectAsState()
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
 
-    // Entrance animation
     var visible by remember { mutableStateOf(false) }
     LaunchedEffect(Unit) { visible = true }
 
@@ -54,31 +68,58 @@ fun ScreenLogin(
         label = "logoAlpha"
     )
 
+    fun navigateHome() {
+        navController.navigate("compare") { popUpTo("login") { inclusive = true } }
+    }
+
+    fun handleGoogleSignIn() {
+        scope.launch {
+            try {
+                val credentialManager = CredentialManager.create(context)
+                val googleIdOption = GetGoogleIdOption.Builder()
+                    .setFilterByAuthorizedAccounts(false)
+                    .setServerClientId(GOOGLE_WEB_CLIENT_ID)
+                    .setAutoSelectEnabled(true)
+                    .build()
+                val request = GetCredentialRequest.Builder()
+                    .addCredentialOption(googleIdOption)
+                    .build()
+                val result = credentialManager.getCredential(context, request)
+                val googleCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
+                vm.signInWithGoogle(
+                    idToken = googleCredential.idToken,
+                    onSucces = { navigateHome() },
+                    onError = { error.value = it }
+                )
+            } catch (e: GetCredentialException) {
+                Log.e("GoogleSignIn", "Credential error", e)
+                error.value = "No se pudo iniciar sesión con Google"
+            } catch (e: Exception) {
+                Log.e("GoogleSignIn", "Error", e)
+                error.value = "Error al conectar con Google"
+            }
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0D1117), Color(0xFF0F2744), Color(0xFF0D1117)),
-                    startY = 0f, endY = Float.POSITIVE_INFINITY
+                    colors = listOf(Color(0xFF0D1117), Color(0xFF0F2744), Color(0xFF0D1117))
                 )
             )
     ) {
         // Decorative circles
         Box(
-            modifier = Modifier
-                .size(300.dp)
-                .offset(x = (-80).dp, y = (-80).dp)
+            modifier = Modifier.size(300.dp).offset(x = (-80).dp, y = (-80).dp)
                 .background(
                     Brush.radialGradient(listOf(ClimbingColors.primary.copy(alpha = 0.08f), Color.Transparent)),
                     shape = RoundedCornerShape(50)
                 )
         )
         Box(
-            modifier = Modifier
-                .size(200.dp)
-                .align(Alignment.BottomEnd)
-                .offset(x = 60.dp, y = 60.dp)
+            modifier = Modifier.size(200.dp).align(Alignment.BottomEnd).offset(x = 60.dp, y = 60.dp)
                 .background(
                     Brush.radialGradient(listOf(Color(0xFF3FB950).copy(alpha = 0.06f), Color.Transparent)),
                     shape = RoundedCornerShape(50)
@@ -86,38 +127,40 @@ fun ScreenLogin(
         )
 
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+            modifier = Modifier.fillMaxSize().verticalScroll(rememberScrollState())
                 .padding(horizontal = 28.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
             Spacer(Modifier.height(60.dp))
 
-            // Logo / Icon
+            // Logo
             Box(
                 modifier = Modifier
                     .graphicsLayer(scaleX = logoScale, scaleY = logoScale, alpha = logoAlpha)
-                    .size(80.dp)
-                    .clip(RoundedCornerShape(24.dp))
-                    .background(
-                        Brush.linearGradient(
-                            listOf(ClimbingColors.primary, Color(0xFF3FB950))
-                        )
-                    ),
+                    .size(80.dp).clip(RoundedCornerShape(24.dp))
+                    .background(Brush.linearGradient(listOf(ClimbingColors.primary, Color(0xFF3FB950)))),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    Icons.Default.Landscape,
-                    contentDescription = null,
-                    tint = Color.White,
-                    modifier = Modifier.size(44.dp)
-                )
+                Icon(Icons.Default.Landscape, null, tint = Color.White, modifier = Modifier.size(44.dp))
             }
 
             Spacer(Modifier.height(24.dp))
 
+            // ── Email verification sent screen ─────────────────────────────
+            if (authState is AuthState.VerificationSent) {
+                VerificationSentCard(
+                    email = (authState as AuthState.VerificationSent).email,
+                    onBack = {
+                        vm.clearAuthState()
+                        showLoginForm.value = true
+                    }
+                )
+                Spacer(Modifier.height(40.dp))
+                return@Column
+            }
+
+            // ── Title ──────────────────────────────────────────────────────
             AnimatedContent(
                 targetState = showLoginForm.value,
                 transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(200)) },
@@ -132,16 +175,62 @@ fun ScreenLogin(
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        if (isLogin) "Inicia sesi\u00f3n para continuar" else "Reg\u00edstrate gratis",
+                        if (isLogin) "Inicia sesión para continuar" else "Regístrate gratis",
                         style = MaterialTheme.typography.bodyMedium,
                         color = ClimbingColors.textTertiary
                     )
                 }
             }
 
-            Spacer(Modifier.height(36.dp))
+            Spacer(Modifier.height(28.dp))
 
-            // Form card
+            // ── Google Sign-In button ──────────────────────────────────────
+            AnimatedVisibility(visible = visible, enter = fadeIn(tween(600))) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    OutlinedButton(
+                        onClick = { handleGoogleSignIn() },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                        shape = RoundedCornerShape(14.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            containerColor = ClimbingColors.surfaceVariant,
+                            contentColor = ClimbingColors.textPrimary
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp, ClimbingColors.searchBarBorder
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.AccountCircle, null,
+                            tint = Color(0xFF4285F4),
+                            modifier = Modifier.size(22.dp)
+                        )
+                        Spacer(Modifier.width(10.dp))
+                        Text(
+                            if (showLoginForm.value) "Continuar con Google" else "Registrarse con Google",
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+
+                    Row(
+                        Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Divider(modifier = Modifier.weight(1f), color = ClimbingColors.divider)
+                        Text(
+                            "  o con email  ",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = ClimbingColors.textTertiary
+                        )
+                        Divider(modifier = Modifier.weight(1f), color = ClimbingColors.divider)
+                    }
+
+                    Spacer(Modifier.height(16.dp))
+                }
+            }
+
+            // ── Email/password form card ───────────────────────────────────
             AnimatedVisibility(
                 visible = visible,
                 enter = slideInVertically(
@@ -160,38 +249,49 @@ fun ScreenLogin(
                             targetState = showLoginForm.value,
                             transitionSpec = {
                                 (slideInHorizontally { if (targetState) -it else it } + fadeIn()) togetherWith
-                                (slideOutHorizontally { if (targetState) it else -it } + fadeOut())
+                                        (slideOutHorizontally { if (targetState) it else -it } + fadeOut())
                             },
                             label = "formAnim"
                         ) { isLogin ->
                             ModernUserForm(
                                 isCreateAccount = !isLogin,
                                 onDone = { email, password ->
+                                    error.value = null
                                     if (isLogin) {
-                                        Log.d("Login", "logueando con $email")
-                                        vm.login(email, password, onSucces = {
-                                            error.value = null
-                                            navController.navigate("compare") {
-                                                popUpTo("login") { inclusive = true }
-                                            }
-                                        }, onError = {
-                                            Log.d("err_login", it)
-                                            error.value = it
-                                        })
+                                        vm.login(email, password,
+                                            onSucces = { navigateHome() },
+                                            onError = { error.value = it }
+                                        )
                                     } else {
-                                        Log.d("Register", "creando cuenta con $email")
-                                        vm.register(email, password, onSucces = {
-                                            error.value = null
-                                            navController.navigate("compare") {
-                                                popUpTo("login") { inclusive = true }
-                                            }
-                                        }, onError = {
-                                            Log.d("err_register", it)
-                                            error.value = it
-                                        })
+                                        vm.register(email, password,
+                                            onSucces = { /* AuthState.VerificationSent will show the card */ },
+                                            onError = { error.value = it }
+                                        )
                                     }
                                 }
                             )
+                        }
+
+                        // Needs verification notice + resend button
+                        if (authState is AuthState.NeedsVerification) {
+                            Spacer(Modifier.height(12.dp))
+                            Row(
+                                modifier = Modifier.fillMaxWidth()
+                                    .clip(RoundedCornerShape(10.dp))
+                                    .background(ClimbingColors.aceptable.copy(alpha = 0.12f))
+                                    .padding(12.dp),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Icon(Icons.Default.Email, null,
+                                    tint = ClimbingColors.aceptable, modifier = Modifier.size(18.dp))
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "Email no verificado. Revisa tu bandeja de entrada.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = ClimbingColors.aceptable,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
 
                         // Error
@@ -199,8 +299,7 @@ fun ScreenLogin(
                             error.value?.let {
                                 Spacer(Modifier.height(12.dp))
                                 Row(
-                                    modifier = Modifier
-                                        .fillMaxWidth()
+                                    modifier = Modifier.fillMaxWidth()
                                         .clip(RoundedCornerShape(10.dp))
                                         .background(ClimbingColors.adverso.copy(alpha = 0.12f))
                                         .padding(12.dp),
@@ -226,19 +325,20 @@ fun ScreenLogin(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    if (showLoginForm.value) "\u00bfNo tienes cuenta?" else "\u00bfYa tienes cuenta?",
+                    if (showLoginForm.value) "¿No tienes cuenta?" else "¿Ya tienes cuenta?",
                     style = MaterialTheme.typography.bodyMedium,
                     color = ClimbingColors.textTertiary
                 )
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    if (showLoginForm.value) "Reg\u00edstrate" else "Inicia sesi\u00f3n",
+                    if (showLoginForm.value) "Regístrate" else "Inicia sesión",
                     style = MaterialTheme.typography.bodyMedium,
                     color = ClimbingColors.primary,
                     fontWeight = FontWeight.SemiBold,
                     modifier = Modifier.clickable {
                         showLoginForm.value = !showLoginForm.value
                         error.value = null
+                        vm.clearAuthState()
                     }
                 )
             }
@@ -248,11 +348,64 @@ fun ScreenLogin(
     }
 }
 
+// ── Email verification sent card ──────────────────────────────────────────────
 @Composable
-private fun ModernUserForm(
-    isCreateAccount: Boolean,
-    onDone: (String, String) -> Unit
-) {
+private fun VerificationSentCard(email: String, onBack: () -> Unit) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.cardColors(containerColor = ClimbingColors.cardBackground)
+    ) {
+        Column(
+            modifier = Modifier.padding(28.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text("📧", fontSize = 48.sp)
+            Spacer(Modifier.height(16.dp))
+            Text(
+                "¡Revisa tu email!",
+                style = MaterialTheme.typography.headlineSmall,
+                color = ClimbingColors.textPrimary,
+                fontWeight = FontWeight.Bold
+            )
+            Spacer(Modifier.height(8.dp))
+            Text(
+                "Hemos enviado un enlace de verificación a:",
+                style = MaterialTheme.typography.bodyMedium,
+                color = ClimbingColors.textSecondary,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(6.dp))
+            Text(
+                email,
+                style = MaterialTheme.typography.bodyLarge,
+                color = ClimbingColors.primary,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(12.dp))
+            Text(
+                "Verifica tu cuenta y luego inicia sesión.",
+                style = MaterialTheme.typography.bodySmall,
+                color = ClimbingColors.textTertiary,
+                textAlign = TextAlign.Center
+            )
+            Spacer(Modifier.height(24.dp))
+            Button(
+                onClick = onBack,
+                modifier = Modifier.fillMaxWidth().height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = ClimbingColors.primary)
+            ) {
+                Text("Ir al inicio de sesión", fontWeight = FontWeight.Bold)
+            }
+        }
+    }
+}
+
+// ── Email/password form ───────────────────────────────────────────────────────
+@Composable
+private fun ModernUserForm(isCreateAccount: Boolean, onDone: (String, String) -> Unit) {
     val email = rememberSaveable { mutableStateOf("") }
     val password = rememberSaveable { mutableStateOf("") }
     val passwordVisible = rememberSaveable { mutableStateOf(false) }
@@ -262,7 +415,6 @@ private fun ModernUserForm(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     Column(verticalArrangement = Arrangement.spacedBy(16.dp)) {
-        // Email
         OutlinedTextField(
             value = email.value,
             onValueChange = { email.value = it },
@@ -274,26 +426,15 @@ private fun ModernUserForm(
             },
             singleLine = true,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = ClimbingColors.surfaceVariant,
-                unfocusedContainerColor = ClimbingColors.surfaceVariant,
-                focusedBorderColor = ClimbingColors.primary,
-                unfocusedBorderColor = ClimbingColors.searchBarBorder,
-                focusedLabelColor = ClimbingColors.primary,
-                unfocusedLabelColor = ClimbingColors.textTertiary,
-                cursorColor = ClimbingColors.primary,
-                focusedTextColor = ClimbingColors.textPrimary,
-                unfocusedTextColor = ClimbingColors.textPrimary
-            ),
+            colors = loginFieldColors(),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()
         )
 
-        // Password
         OutlinedTextField(
             value = password.value,
             onValueChange = { password.value = it },
-            label = { Text("Contrase\u00f1a") },
+            label = { Text("Contraseña") },
             leadingIcon = {
                 Icon(Icons.Default.Lock, null,
                     tint = if (password.value.isNotEmpty()) ClimbingColors.primary else ClimbingColors.textTertiary,
@@ -303,43 +444,35 @@ private fun ModernUserForm(
                 IconButton(onClick = { passwordVisible.value = !passwordVisible.value }) {
                     Icon(
                         if (passwordVisible.value) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                        contentDescription = "Ver contrase\u00f1a",
-                        tint = ClimbingColors.textTertiary,
-                        modifier = Modifier.size(20.dp)
+                        "Ver contraseña", tint = ClimbingColors.textTertiary, modifier = Modifier.size(20.dp)
                     )
                 }
             },
             singleLine = true,
             visualTransformation = if (passwordVisible.value) VisualTransformation.None else PasswordVisualTransformation(),
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = ClimbingColors.surfaceVariant,
-                unfocusedContainerColor = ClimbingColors.surfaceVariant,
-                focusedBorderColor = ClimbingColors.primary,
-                unfocusedBorderColor = ClimbingColors.searchBarBorder,
-                focusedLabelColor = ClimbingColors.primary,
-                unfocusedLabelColor = ClimbingColors.textTertiary,
-                cursorColor = ClimbingColors.primary,
-                focusedTextColor = ClimbingColors.textPrimary,
-                unfocusedTextColor = ClimbingColors.textPrimary
-            ),
+            colors = loginFieldColors(),
             shape = RoundedCornerShape(14.dp),
             modifier = Modifier.fillMaxWidth()
         )
 
+        if (isCreateAccount) {
+            Text(
+                "La contraseña debe tener al menos 6 caracteres.\nRecibirás un email de verificación.",
+                style = MaterialTheme.typography.labelSmall,
+                color = ClimbingColors.textTertiary,
+                lineHeight = 14.sp
+            )
+        }
+
         Spacer(Modifier.height(4.dp))
 
-        // Submit button with gradient
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp)
+            modifier = Modifier.fillMaxWidth().height(52.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(
-                    if (isValid)
-                        Brush.horizontalGradient(listOf(ClimbingColors.primary, Color(0xFF3FB950)))
-                    else
-                        Brush.horizontalGradient(listOf(ClimbingColors.textTertiary, ClimbingColors.textTertiary))
+                    if (isValid) Brush.horizontalGradient(listOf(ClimbingColors.primary, Color(0xFF3FB950)))
+                    else Brush.horizontalGradient(listOf(ClimbingColors.textTertiary, ClimbingColors.textTertiary))
                 )
                 .clickable(enabled = isValid) {
                     onDone(email.value.trim(), password.value.trim())
@@ -348,7 +481,7 @@ private fun ModernUserForm(
             contentAlignment = Alignment.Center
         ) {
             Text(
-                if (isCreateAccount) "Crear cuenta" else "Iniciar sesi\u00f3n",
+                if (isCreateAccount) "Crear cuenta" else "Iniciar sesión",
                 style = MaterialTheme.typography.titleMedium,
                 color = Color.White,
                 fontWeight = FontWeight.Bold
@@ -356,3 +489,17 @@ private fun ModernUserForm(
         }
     }
 }
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun loginFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedContainerColor = ClimbingColors.surfaceVariant,
+    unfocusedContainerColor = ClimbingColors.surfaceVariant,
+    focusedBorderColor = ClimbingColors.primary,
+    unfocusedBorderColor = ClimbingColors.searchBarBorder,
+    focusedLabelColor = ClimbingColors.primary,
+    unfocusedLabelColor = ClimbingColors.textTertiary,
+    cursorColor = ClimbingColors.primary,
+    focusedTextColor = ClimbingColors.textPrimary,
+    unfocusedTextColor = ClimbingColors.textPrimary
+)

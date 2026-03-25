@@ -43,7 +43,8 @@ import java.io.File
 @Composable
 fun ProfileScreen(
     userId: String? = null,
-    onBack: () -> Unit
+    onBack: () -> Unit,
+    onSendMessage: ((otherUserId: String) -> Unit)? = null
 ) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
@@ -429,6 +430,25 @@ fun ProfileScreen(
                 )
             }
         } else {
+            // Send message button for other users' profiles
+            val targetUserId = userId
+            if (targetUserId != null && onSendMessage != null) {
+                Button(
+                    onClick = { onSendMessage(targetUserId) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ClimbingColors.primary)
+                ) {
+                    Icon(Icons.Default.Chat, null, modifier = Modifier.size(20.dp))
+                    Spacer(Modifier.width(8.dp))
+                    Text("Enviar mensaje", fontWeight = FontWeight.Bold)
+                }
+                Spacer(Modifier.height(12.dp))
+            }
+
             // View-only profile
             Card(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
