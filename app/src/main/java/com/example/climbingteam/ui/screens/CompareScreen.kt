@@ -237,8 +237,8 @@ private val slotColors = listOf(
     Color(0xFFFF6B6B)   // Coral
 )
 
-private val categoryLabels = listOf("Temp", "Viento", "Lluvia", "Humedad")
-private val categoryIcons = listOf("🌡", "💨", "🌧", "💧")
+private val categoryLabels = listOf("Temp", "Viento", "Lluvia", "Humedad", "Rocío")
+private val categoryIcons  = listOf("🌡", "💨", "🌧", "💧", "🫧")
 
 @Composable
 private fun ClimbingComparisonPanel(
@@ -353,8 +353,8 @@ private fun ClimbingComparisonPanel(
 
         Spacer(Modifier.height(16.dp))
 
-        // ── Bar chart: 4 categories, grouped bars ──
-        for (catIdx in 0..3) {
+        // ── Bar chart: 5 categories, grouped bars ──
+        for (catIdx in 0..4) {
             val catLabel = categoryLabels[catIdx]
             val catIcon = categoryIcons[catIdx]
 
@@ -384,6 +384,12 @@ private fun ClimbingComparisonPanel(
                             1 -> "${w.current?.windSpeed?.toInt() ?: 0} km/h"
                             2 -> "${w.current?.precipitation ?: 0.0} mm"
                             3 -> "${w.current?.humidity?.toInt() ?: 0}%"
+                            4 -> {
+                                val h = w.current?.humidity ?: 50.0
+                                val t = w.current?.temperature ?: 15.0
+                                val spread = (100.0 - h) / 5.0
+                                "${"%.1f".format(spread)}\u00b0C"
+                            }
                             else -> ""
                         }
 
@@ -431,72 +437,119 @@ private fun ClimbingComparisonPanel(
                 }
             }
 
-            if (catIdx < 3) {
+            if (catIdx < 4) {
                 Spacer(Modifier.height(4.dp))
             }
         }
 
         Spacer(Modifier.height(16.dp))
 
-        // ── Total score summary row ──
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(10.dp))
-                .background(Color(0xFF1C2128))
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
+        // ── Discipline scores per location ──
+        val disciplineNames = listOf("🧗 Boulder", "🪨 Vía", "🏔 Larga")
+        val disciplineColors = listOf(
+            Color(0xFF58A6FF),
+            Color(0xFF7C3AED),
+            Color(0xFFFF6B6B)
+        )
+
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "PUNTUACIÓN POR DISCIPLINA",
+            style = MaterialTheme.typography.labelSmall,
+            color = ClimbingColors.textTertiary,
+            fontWeight = FontWeight.Bold,
+            letterSpacing = 1.sp
+        )
+        Spacer(Modifier.height(8.dp))
+
+        // Header row: location names
+        Row(Modifier.fillMaxWidth()) {
+            Spacer(Modifier.width(72.dp))
             validEntries.forEach { (idx, w, _) ->
-                val total = viewModel.getTotalScore(w)
                 val isBest = bestIndex == idx
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(44.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isBest) ClimbingColors.optimo.copy(alpha = 0.2f)
-                                else slotColors[idx].copy(alpha = 0.15f)
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            "$total",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = if (isBest) ClimbingColors.optimo else slotColors[idx]
-                        )
+                Text(
+                    w.location.name,
+                    fontSize = 10.sp,
+                    color = if (isBest) ClimbingColors.optimo else slotColors[idx],
+                    fontWeight = if (isBest) FontWeight.Bold else FontWeight.Normal,
+                    maxLines = 1,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+
+        Spacer(Modifier.height(6.dp))
+
+        // One row per discipline
+        listOf(0, 1, 2).forEach { discIdx ->
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 3.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    disciplineNames[discIdx],
+                    fontSize = 11.sp,
+                    color = ClimbingColors.textSecondary,
+                    modifier = Modifier.width(72.dp)
+                )
+                validEntries.forEach { (idx, w, _) ->
+                    val (b, v, l) = viewModel.getDisciplineScores(w)
+                    val discScore = when (discIdx) { 0 -> b; 1 -> v; else -> l }
+                    val isBest = bestIndex == idx
+                    val scoreColor = when {
+                        discScore >= 80 -> ClimbingColors.optimo
+                        discScore >= 50 -> Color(0xFFFFA726)
+                        else            -> Color(0xFFEF5350)
                     }
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        w.location.name,
-                        fontSize = 10.sp,
-                        color = if (isBest) ClimbingColors.optimo else ClimbingColors.textSecondary,
-                        fontWeight = if (isBest) FontWeight.Bold else FontWeight.Normal,
-                        maxLines = 1
+                    val animScore by animateFloatAsState(
+                        targetValue = discScore / 100f,
+                        animationSpec = tween(800, delayMillis = discIdx * 120),
+                        label = "disc_${idx}_$discIdx"
                     )
-                    if (isBest) {
+                    Column(
+                        modifier = Modifier.weight(1f).padding(end = 8.dp),
+                        horizontalAlignment = Alignment.Start
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(12.dp)
+                                .clip(RoundedCornerShape(3.dp))
+                                .background(Color(0xFF1C2128))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxHeight()
+                                    .fillMaxWidth(animScore.coerceAtLeast(0.02f))
+                                    .clip(RoundedCornerShape(3.dp))
+                                    .background(
+                                        Brush.horizontalGradient(
+                                            listOf(scoreColor.copy(alpha = 0.5f), scoreColor)
+                                        )
+                                    )
+                            )
+                        }
                         Text(
-                            "\u2b50 Mejor",
+                            "$discScore",
                             fontSize = 9.sp,
-                            color = ClimbingColors.optimo
+                            color = scoreColor,
+                            fontWeight = if (isBest) FontWeight.Bold else FontWeight.Normal,
+                            modifier = Modifier.padding(top = 1.dp)
                         )
                     }
                 }
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(10.dp))
 
-        // ── Scoring explanation ──
+        // ── Scoring notes ──
         Text(
-            "Rango ideal: 12-22\u00b0C \u00b7 Viento <10km/h \u00b7 Sin lluvia \u00b7 Humedad 30-70%",
-            fontSize = 9.sp,
-            color = ClimbingColors.textTertiary.copy(alpha = 0.6f),
-            modifier = Modifier.padding(top = 4.dp)
+            "🧗 Boulder 4-10\u00b0C \u00b7 🪨 Vía 8-16\u00b0C \u00b7 🏔 Larga 10-18\u00b0C \u00b7 HR ideal 35-60% \u00b7 Rocío>4\u00b0C",
+            fontSize = 8.sp,
+            color = ClimbingColors.textTertiary.copy(alpha = 0.55f)
         )
     }
 }

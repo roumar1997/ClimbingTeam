@@ -209,6 +209,166 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
         refreshAll()
     }
 
+    // ── Climbing condition scoring ─────────────────────────────
+
+    /** Calculates approximate dew point spread (temp - dewpoint) from temp and relative humidity.
+     *  Formula: dewpoint ≈ temp - ((100 - RH) / 5)  → spread = (100 - RH) / 5
+     *  > 6°C = rock very dry, 4–6°C = OK, 2–4°C = borderline, < 2°C = damp rock */
+    private fun dewSpread(temp: Double, humidity: Double): Double = (100.0 - humidity) / 5.0
+
+    /** Weather codes that mean active rain/precipitation */
+    private fun isRainingCode(code: Int?): Boolean = code in setOf(
+        51, 53, 55, 56, 57,          // drizzle
+        61, 63, 65, 66, 67,          // rain
+        71, 73, 75, 77,              // snow
+        80, 81, 82, 85, 86           // showers
+    )
+
+    /** Weather codes that mean thunderstorm → hard discard */
+    private fun isThunderstormCode(code: Int?): Boolean = (code ?: 0) >= 95
+
+    /**
+     * Returns 5 bar-chart scores (each 0–100) for the bar chart:
+     * [0] Temp, [1] Viento, [2] Lluvia, [3] Humedad, [4] Rocío (dewSpread)
+     * These use STRICT climbing criteria.
+     */
+    fun getClimbingScores(weather: LocationWeather): List<Int> {
+        val c = weather.current ?: return listOf(0, 0, 0, 0, 0)
+        val temp     = c.temperature ?: 15.0
+        val wind     = c.windSpeed   ?: 0.0
+        val precip   = c.precipitation ?: 0.0
+        val humidity = c.humidity    ?: 50.0
+        val code     = c.weatherCode
+
+        // Hard discard: thunderstorm or heavy rain → everything 0
+        if (isThunderstormCode(code)) return listOf(0, 0, 0, 0, 0)
+
+        // Temp: weighted average of the 3 disciplines' ideal ranges
+        // Boulder 4-10, Vía 8-16, Larga 10-18 → combined sweet spot ~8-14
+        val tempScore = when {
+            temp in 8.0..14.0  -> 100
+            temp in 4.0..18.0  -> 75
+            temp in 0.0..22.0  -> 45
+            temp in -5.0..28.0 -> 20
+            else               -> 0
+        }
+
+        // Wind: strictest discipline is boulder (<12 km/h)
+        val windScore = when {
+            wind <= 6   -> 100
+            wind <= 12  -> 80
+            wind <= 15  -> 60
+            wind <= 20  -> 35
+            wind <= 30  -> 10
+            else        -> 0
+        }
+
+        // Rain: any precipitation is a strong negative signal for rock condition
+        val rainScore = when {
+            precip == 0.0 && !isRainingCode(code) -> 100
+            precip == 0.0                          -> 60   // code says rain but meter shows 0
+            precip < 0.3                           -> 30
+            precip < 1.0                           -> 10
+            else                                   -> 0
+        }
+
+        // Humidity: ideal 35-60% for all disciplines
+        val humidityScore = when {
+            humidity in 35.0..60.0 -> 100
+            humidity in 25.0..65.0 -> 70
+            humidity in 20.0..75.0 -> 40
+            humidity in 15.0..85.0 -> 15
+            else                   -> 0
+        }
+
+        // DewSpread: how dry the rock surface feels
+        val dew = dewSpread(temp, humidity)
+        val dewScore = when {
+            dew > 8  -> 100
+            dew > 6  -> 85
+            dew > 4  -> 60   // minimum acceptable
+            dew > 2  -> 25
+            else     -> 0
+        }
+
+        return listOf(tempScore, windScore, rainScore, humidityScore, dewScore)
+    }
+
+    /**
+     * Returns per-discipline scores: [boulder, via, viaLarga] each 0–100.
+     * Based on real climbing criteria:
+     *  Boulder:   4-10°C · 35-60% HR · <12 km/h · dewSpread>4
+     *  Vía:       8-16°C · 35-60% HR · <15 km/h · dewSpread>4
+     *  Vía Larga: 10-18°C · 30-65% HR · <20 km/h · no tormenta
+     */
+    fun getDisciplineScores(weather: LocationWeather): Triple<Int, Int, Int> {
+        val c = weather.current ?: return Triple(0, 0, 0)
+        val temp     = c.temperature   ?: 15.0
+        val wind     = c.windSpeed     ?: 0.0
+        val precip   = c.precipitation ?: 0.0
+        val humidity = c.humidity      ?: 50.0
+        val code     = c.weatherCode
+
+        // Hard discard conditions
+        if (isThunderstormCode(code)) return Triple(0, 0, 0)
+        val raining = isRainingCode(code) || precip >= 1.0
+        if (raining) return Triple(0, 0, 0)
+
+        val dew = dewSpread(temp, humidity)
+        val goodDew = dew > 4.0   // rock surface dry enough
+        val lightPrecip = precip in 0.01..0.99  // light drizzle → reduce score
+
+        fun score(
+            tempIdeal: ClosedFloatingPointRange<Double>,
+            tempOk: ClosedFloatingPointRange<Double>,
+            hrIdeal: ClosedFloatingPointRange<Double>,
+            hrOk: ClosedFloatingPointRange<Double>,
+            windMax: Double
+        ): Int {
+            // Temperature (40 pts)
+            val t = when {
+                temp in tempIdeal -> 40
+                temp in tempOk    -> 24
+                else              -> 0
+            }
+            // Humidity (25 pts)
+            val h = when {
+                humidity in hrIdeal -> 25
+                humidity in hrOk    -> 14
+                else                -> 0
+            }
+            // Wind (20 pts)
+            val w = when {
+                wind <= windMax * 0.4  -> 20
+                wind <= windMax        -> 13
+                wind <= windMax * 1.3  -> 5
+                else                   -> 0
+            }
+            // DewSpread (15 pts)
+            val d = when {
+                dew > 6 -> 15
+                dew > 4 -> 10
+                dew > 2 -> 4
+                else    -> 0
+            }
+            val base = t + h + w + d
+            // Light drizzle: -30%
+            return if (lightPrecip) (base * 0.70).toInt() else base
+        }
+
+        val boulder  = score(4.0..10.0, 0.0..14.0,  35.0..60.0, 25.0..70.0, 12.0)
+        val via      = score(8.0..16.0, 4.0..20.0,  35.0..60.0, 25.0..72.0, 15.0)
+        val viaLarga = score(10.0..18.0, 5.0..24.0, 30.0..65.0, 20.0..75.0, 20.0)
+
+        return Triple(boulder, via, viaLarga)
+    }
+
+    /** Overall best score = best of the 3 disciplines */
+    fun getTotalScore(weather: LocationWeather): Int {
+        val (b, v, l) = getDisciplineScores(weather)
+        return maxOf(b, v, l)
+    }
+
     private fun updateBestLocation() {
         val data = _weatherData.value
         val validIndices = data.indices.filter { data[it] != null }
@@ -216,85 +376,9 @@ class WeatherViewModel(application: Application) : AndroidViewModel(application)
             _bestLocationIndex.value = null
             return
         }
-
         _bestLocationIndex.value = validIndices.maxByOrNull { idx ->
-            val w = data[idx]!!
-            val current = w.current ?: return@maxByOrNull -100
-            var score = 0
-            val temp = current.temperature ?: 15.0
-            val wind = current.windSpeed ?: 0.0
-            val precip = current.precipitation ?: 0.0
-            val humidity = current.humidity ?: 50.0
-
-            // Temperature ideal: 12-22
-            score += when {
-                temp in 12.0..22.0 -> 30
-                temp in 8.0..28.0 -> 20
-                temp in 5.0..32.0 -> 10
-                else -> 0
-            }
-            // Low wind
-            score += when {
-                wind < 10 -> 25
-                wind < 20 -> 15
-                wind < 30 -> 5
-                else -> 0
-            }
-            // No rain
-            score += when {
-                precip == 0.0 -> 25
-                precip < 1 -> 15
-                precip < 3 -> 5
-                else -> 0
-            }
-            // Humidity
-            score += when {
-                humidity in 30.0..70.0 -> 20
-                humidity in 20.0..80.0 -> 10
-                else -> 0
-            }
-            score
+            getTotalScore(data[idx]!!)
         }
-    }
-
-    /** Returns (tempScore, windScore, rainScore, humidityScore) each 0..100 normalized */
-    fun getClimbingScores(weather: LocationWeather): List<Int> {
-        val c = weather.current ?: return listOf(0, 0, 0, 0)
-        val temp = c.temperature ?: 15.0
-        val wind = c.windSpeed ?: 0.0
-        val precip = c.precipitation ?: 0.0
-        val humidity = c.humidity ?: 50.0
-
-        val tempScore = when {
-            temp in 12.0..22.0 -> 100
-            temp in 8.0..28.0  -> 66
-            temp in 5.0..32.0  -> 33
-            else -> 0
-        }
-        val windScore = when {
-            wind < 10 -> 100
-            wind < 20 -> 60
-            wind < 30 -> 20
-            else -> 0
-        }
-        val rainScore = when {
-            precip == 0.0 -> 100
-            precip < 1    -> 60
-            precip < 3    -> 20
-            else -> 0
-        }
-        val humidityScore = when {
-            humidity in 30.0..70.0 -> 100
-            humidity in 20.0..80.0 -> 50
-            else -> 0
-        }
-        return listOf(tempScore, windScore, rainScore, humidityScore)
-    }
-
-    fun getTotalScore(weather: LocationWeather): Int {
-        val s = getClimbingScores(weather)
-        // Weighted: temp 30%, wind 25%, rain 25%, humidity 20%
-        return (s[0] * 0.30 + s[1] * 0.25 + s[2] * 0.25 + s[3] * 0.20).toInt()
     }
 
     // Favorites
