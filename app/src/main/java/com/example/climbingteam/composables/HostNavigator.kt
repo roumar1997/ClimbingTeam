@@ -22,6 +22,7 @@ import com.example.climbingteam.repository.ProfileRepository
 import com.example.climbingteam.viewmodels.AuthViewModel
 import com.example.climbingteam.viewmodels.ChatViewModel
 import com.example.climbingteam.viewmodels.SectorViewModel
+import com.example.climbingteam.viewmodels.ThemeViewModel
 import com.example.climbingteam.viewmodels.WeatherViewModel
 import kotlinx.coroutines.launch
 
@@ -30,7 +31,8 @@ fun HostNavigator(
     vm: AuthViewModel,
     weatherVm: WeatherViewModel,
     sectorVm: SectorViewModel,
-    chatVm: ChatViewModel
+    chatVm: ChatViewModel,
+    themeVm: ThemeViewModel
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -43,7 +45,9 @@ fun HostNavigator(
     val bottomNavRoutes = setOf("compare", "favorites", "sectors", "map", "messages", "settings")
     val showBottomNav = currentRoute in bottomNavRoutes
 
-    ClimbingTeamTheme {
+    val isDark by themeVm.isDarkTheme.collectAsState()
+
+    ClimbingTeamTheme(darkTheme = isDark) {
         Scaffold(
             bottomBar = {
                 if (showBottomNav) {
@@ -139,6 +143,7 @@ fun HostNavigator(
                         DetailScreen(
                             viewModel = weatherVm,
                             overrideWeather = previewWeather,
+                            sectorName = previewWeather?.location?.name,
                             onBack = { navController.popBackStack() },
                             onViewProfile = { userId ->
                                 navController.navigate("profile/$userId")
@@ -195,6 +200,7 @@ fun HostNavigator(
                     SettingsScreen(
                         authViewModel = vm,
                         weatherViewModel = weatherVm,
+                        themeViewModel = themeVm,
                         onLogout = {
                             navController.navigate("login") {
                                 popUpTo(0) { inclusive = true }

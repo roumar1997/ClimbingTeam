@@ -35,6 +35,7 @@ fun DetailScreen(
     viewModel: WeatherViewModel,
     slotIndex: Int = 0,
     overrideWeather: LocationWeather? = null,
+    sectorName: String? = null,
     onBack: () -> Unit,
     onViewProfile: (String) -> Unit = {}
 ) {
@@ -68,7 +69,7 @@ fun DetailScreen(
                 .fillMaxWidth()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF1A3A5C), Color(0xFF0F2744), ClimbingColors.background)
+                        listOf(ClimbingColors.headerGradientTop, ClimbingColors.headerGradientMid, ClimbingColors.background)
                     )
                 )
                 .padding(top = 44.dp, bottom = 16.dp)
@@ -176,7 +177,9 @@ fun DetailScreen(
             }
         }
 
-        Spacer(Modifier.height(8.dp))
+        // Sub-sector voting section (before hourly forecast)
+        val resolvedSectorName = sectorName ?: weather.location.name
+        SubSectorInlineSection(sectorName = resolvedSectorName)
 
         // --- Hourly Forecast ---
         Text(
@@ -350,7 +353,7 @@ fun DetailScreen(
             }
         }
 
-        Spacer(Modifier.height(100.dp))
+        Spacer(Modifier.height(80.dp))
     }
 }
 

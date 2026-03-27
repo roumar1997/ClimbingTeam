@@ -40,34 +40,41 @@ fun FavoritesScreen(
                 .fillMaxWidth()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF1A3A5C), Color(0xFF0F2744), ClimbingColors.background)
+                        listOf(ClimbingColors.headerGradientTop, ClimbingColors.headerGradientMid, ClimbingColors.background)
                     )
                 )
-                .padding(top = 48.dp, bottom = 16.dp)
+                .padding(top = 52.dp, bottom = 20.dp)
                 .padding(horizontal = 20.dp)
         ) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color(0xFFE91E63).copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         Icons.Default.Favorite,
                         contentDescription = null,
-                        tint = Color(0xFFE91E63),
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "Favoritos",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = ClimbingColors.textPrimary,
-                        fontWeight = FontWeight.Bold
+                        tint     = Color(0xFFFF4F8B),
+                        modifier = Modifier.size(22.dp)
                     )
                 }
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "Tus lugares guardados para acceso r\u00e1pido",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = ClimbingColors.textTertiary
-                )
+                Spacer(Modifier.width(12.dp))
+                Column {
+                    Text(
+                        "Favoritos",
+                        style      = MaterialTheme.typography.headlineSmall,
+                        color      = Color.White,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        "${favorites.size} lugar${if (favorites.size == 1) "" else "es"} guardado${if (favorites.size == 1) "" else "s"}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.White.copy(alpha = 0.60f)
+                    )
+                }
             }
         }
 
@@ -75,28 +82,33 @@ fun FavoritesScreen(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(32.dp),
+                    .padding(40.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Icon(
-                        Icons.Default.FavoriteBorder,
-                        contentDescription = null,
-                        tint = ClimbingColors.textTertiary,
-                        modifier = Modifier.size(64.dp)
-                    )
-                    Spacer(Modifier.height(16.dp))
+                    // Big illustrated icon
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .clip(RoundedCornerShape(30.dp))
+                            .background(ClimbingColors.cardBackground),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("🏔", fontSize = 48.sp)
+                    }
+                    Spacer(Modifier.height(24.dp))
                     Text(
-                        "Sin favoritos a\u00fan",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = ClimbingColors.textSecondary
+                        "Sin favoritos aún",
+                        style      = MaterialTheme.typography.titleLarge,
+                        color      = ClimbingColors.textPrimary,
+                        fontWeight = FontWeight.Bold
                     )
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        "A\u00f1ade lugares desde la pesta\u00f1a Comparar\npulsando el coraz\u00f3n en cada tarjeta",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = ClimbingColors.textTertiary,
-                        lineHeight = 18.sp
+                        "Guarda tus zonas favoritas desde\nla pestaña Comparar pulsando ❤️",
+                        style      = MaterialTheme.typography.bodyMedium,
+                        color      = ClimbingColors.textTertiary,
+                        lineHeight = 20.sp
                     )
                 }
             }

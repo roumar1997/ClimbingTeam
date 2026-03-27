@@ -60,7 +60,7 @@ fun ChatScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color(0xFF1A3A5C), Color(0xFF0F2744))))
+                .background(Brush.verticalGradient(listOf(ClimbingColors.headerGradientTop, ClimbingColors.headerGradientMid, ClimbingColors.background)))
                 .padding(top = 44.dp, bottom = 12.dp)
                 .padding(horizontal = 8.dp)
         ) {

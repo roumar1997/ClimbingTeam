@@ -13,6 +13,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -20,17 +21,20 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.climbingteam.ui.theme.ClimbingColors
 import com.example.climbingteam.viewmodels.AuthViewModel
+import com.example.climbingteam.viewmodels.ThemeViewModel
 import com.example.climbingteam.viewmodels.WeatherViewModel
 
 @Composable
 fun SettingsScreen(
     authViewModel: AuthViewModel,
     weatherViewModel: WeatherViewModel,
+    themeViewModel: ThemeViewModel,
     onLogout: () -> Unit,
     onNavigateToProfile: () -> Unit = {}
 ) {
     val user by authViewModel.user.collectAsState()
     val forecastDays by weatherViewModel.forecastDays.collectAsState()
+    val isDark by themeViewModel.isDarkTheme.collectAsState()
 
     Column(
         modifier = Modifier
@@ -44,28 +48,34 @@ fun SettingsScreen(
                 .fillMaxWidth()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF1A3A5C), Color(0xFF0F2744), ClimbingColors.background)
+                        listOf(ClimbingColors.headerGradientTop, ClimbingColors.headerGradientMid, ClimbingColors.background)
                     )
                 )
-                .padding(top = 48.dp, bottom = 16.dp)
+                .padding(top = 52.dp, bottom = 20.dp)
                 .padding(horizontal = 20.dp)
         ) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
                     Icon(
                         Icons.Default.Settings,
                         contentDescription = null,
-                        tint = ClimbingColors.primary,
-                        modifier = Modifier.size(24.dp)
-                    )
-                    Spacer(Modifier.width(8.dp))
-                    Text(
-                        "Ajustes",
-                        style = MaterialTheme.typography.headlineSmall,
-                        color = ClimbingColors.textPrimary,
-                        fontWeight = FontWeight.Bold
+                        tint     = Color.White,
+                        modifier = Modifier.size(22.dp)
                     )
                 }
+                Spacer(Modifier.width(12.dp))
+                Text(
+                    "Ajustes",
+                    style      = MaterialTheme.typography.headlineSmall,
+                    color      = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
 
@@ -157,6 +167,54 @@ fun SettingsScreen(
                         )
                     }
                 }
+            }
+        }
+
+        Spacer(Modifier.height(16.dp))
+
+        // Dark / light mode toggle
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp),
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = ClimbingColors.cardBackground)
+        ) {
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = if (isDark) Icons.Default.DarkMode else Icons.Default.LightMode,
+                    contentDescription = null,
+                    tint = ClimbingColors.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(Modifier.width(12.dp))
+                Column(Modifier.weight(1f)) {
+                    Text(
+                        if (isDark) "Modo oscuro" else "Modo claro",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = ClimbingColors.textPrimary,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        if (isDark) "Cambia a fondo claro" else "Cambia a fondo oscuro",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = ClimbingColors.textTertiary
+                    )
+                }
+                Switch(
+                    checked = isDark,
+                    onCheckedChange = { themeViewModel.setDarkTheme(it) },
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = ClimbingColors.primary,
+                        checkedTrackColor = ClimbingColors.primary.copy(alpha = 0.3f),
+                        uncheckedThumbColor = ClimbingColors.textTertiary,
+                        uncheckedTrackColor = ClimbingColors.surfaceVariant
+                    )
+                )
             }
         }
 

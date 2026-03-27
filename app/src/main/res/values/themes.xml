@@ -1,5 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
+    <!-- Base app theme – no action bar, used as postSplashScreenTheme -->
     <style name="Theme.ClimbingTeam" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash Screen theme (SplashScreen API compat) -->
+    <style name="Theme.ClimbingTeam.Splash" parent="Theme.SplashScreen">
+        <!-- Dark navy background matching the app's dark mode -->
+        <item name="windowSplashScreenBackground">#0D1117</item>
+        <!-- Mountain icon -->
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_splash_icon</item>
+        <!-- Optional: circular background behind the icon on API 31+ -->
+        <item name="windowSplashScreenIconBackgroundColor">#161B22</item>
+        <!-- Transition to the real app theme once loaded -->
+        <item name="postSplashScreenTheme">@style/Theme.ClimbingTeam</item>
+    </style>
+
 </resources>

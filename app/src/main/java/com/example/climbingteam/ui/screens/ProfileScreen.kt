@@ -117,7 +117,7 @@ fun ProfileScreen(
                 .fillMaxWidth()
                 .background(
                     Brush.verticalGradient(
-                        listOf(Color(0xFF1A3A5C), Color(0xFF0F2744), ClimbingColors.background)
+                        listOf(ClimbingColors.headerGradientTop, ClimbingColors.headerGradientMid, ClimbingColors.background)
                     )
                 )
                 .padding(top = 44.dp, bottom = 24.dp)

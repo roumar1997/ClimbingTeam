@@ -106,7 +106,7 @@ fun ScreenLogin(
             .fillMaxSize()
             .background(
                 Brush.verticalGradient(
-                    colors = listOf(Color(0xFF0D1117), Color(0xFF0F2744), Color(0xFF0D1117))
+                    colors = listOf(ClimbingColors.headerGradientMid, ClimbingColors.headerGradientTop, ClimbingColors.headerGradientMid)
                 )
             )
     ) {
@@ -134,18 +134,63 @@ fun ScreenLogin(
         ) {
             Spacer(Modifier.height(60.dp))
 
-            // Logo
+            // ── App logo with glow ring ────────────────────────────────────
             Box(
-                modifier = Modifier
-                    .graphicsLayer(scaleX = logoScale, scaleY = logoScale, alpha = logoAlpha)
-                    .size(80.dp).clip(RoundedCornerShape(24.dp))
-                    .background(Brush.linearGradient(listOf(ClimbingColors.primary, Color(0xFF3FB950)))),
+                modifier         = Modifier
+                    .graphicsLayer(scaleX = logoScale, scaleY = logoScale, alpha = logoAlpha),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Default.Landscape, null, tint = Color.White, modifier = Modifier.size(44.dp))
+                // Glow ring
+                Box(
+                    modifier = Modifier
+                        .size(110.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(
+                            Brush.radialGradient(
+                                listOf(
+                                    ClimbingColors.primary.copy(alpha = 0.20f),
+                                    Color.Transparent
+                                )
+                            )
+                        )
+                )
+                // Icon badge
+                Box(
+                    modifier = Modifier
+                        .size(84.dp)
+                        .clip(RoundedCornerShape(28.dp))
+                        .background(
+                            Brush.linearGradient(
+                                listOf(ClimbingColors.primary, ClimbingColors.secondary)
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        Icons.Default.Landscape,
+                        contentDescription = null,
+                        tint     = Color.White,
+                        modifier = Modifier.size(50.dp)
+                    )
+                }
             }
 
-            Spacer(Modifier.height(24.dp))
+            Spacer(Modifier.height(18.dp))
+
+            // App name
+            Text(
+                "MeteoMontaña",
+                style      = MaterialTheme.typography.headlineMedium,
+                color      = Color.White,
+                fontWeight = FontWeight.Bold
+            )
+            Text(
+                "Meteorología para escalada",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.55f)
+            )
+
+            Spacer(Modifier.height(32.dp))
 
             // ── Email verification sent screen ─────────────────────────────
             if (authState is AuthState.VerificationSent) {
@@ -160,29 +205,20 @@ fun ScreenLogin(
                 return@Column
             }
 
-            // ── Title ──────────────────────────────────────────────────────
+            // ── Section subtitle (login / register) ───────────────────────
             AnimatedContent(
                 targetState = showLoginForm.value,
-                transitionSpec = { fadeIn(tween(300)) togetherWith fadeOut(tween(200)) },
+                transitionSpec = { fadeIn(tween(250)) togetherWith fadeOut(tween(150)) },
                 label = "titleAnim"
             ) { isLogin ->
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        if (isLogin) "Bienvenido" else "Crear cuenta",
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = ClimbingColors.textPrimary,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        if (isLogin) "Inicia sesión para continuar" else "Regístrate gratis",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = ClimbingColors.textTertiary
-                    )
-                }
+                Text(
+                    if (isLogin) "Inicia sesión para continuar" else "Crea tu cuenta gratis",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = Color.White.copy(alpha = 0.60f)
+                )
             }
 
-            Spacer(Modifier.height(28.dp))
+            Spacer(Modifier.height(24.dp))
 
             // ── Google Sign-In button ──────────────────────────────────────
             AnimatedVisibility(visible = visible, enter = fadeIn(tween(600))) {

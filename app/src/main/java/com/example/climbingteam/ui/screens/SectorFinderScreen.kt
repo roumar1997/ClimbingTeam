@@ -35,17 +35,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.viewmodel.compose.viewModel as composeViewModel
 import com.example.climbingteam.data.*
 import com.example.climbingteam.ui.theme.ClimbingColors
 import com.example.climbingteam.viewmodels.DisciplineSort
 import com.example.climbingteam.viewmodels.SectorViewModel
+import com.example.climbingteam.viewmodels.SubSectorViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("MissingPermission")
 @Composable
 fun SectorFinderScreen(
     viewModel: SectorViewModel,
     onSectorClick: (SectorResult) -> Unit = {}
 ) {
+    val subSectorVm: SubSectorViewModel = composeViewModel()
     val context = LocalContext.current
 
     val results by viewModel.sortedResults.collectAsState()
@@ -61,6 +65,16 @@ fun SectorFinderScreen(
     val disciplineSort by viewModel.disciplineSort.collectAsState()
 
     var filtersExpanded by remember { mutableStateOf(true) }
+
+    // Sub-sector vote sheet
+    var activeSubSector by remember { mutableStateOf<SubSector?>(null) }
+    activeSubSector?.let { sub ->
+        SubSectorVoteSheet(
+            subSector = sub,
+            viewModel = subSectorVm,
+            onDismiss = { activeSubSector = null }
+        )
+    }
 
     // Location
     @SuppressLint("MissingPermission")
@@ -107,7 +121,7 @@ fun SectorFinderScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(Brush.verticalGradient(listOf(Color(0xFF1A3A5C), Color(0xFF0F2744))))
+                .background(Brush.verticalGradient(listOf(ClimbingColors.headerGradientTop, ClimbingColors.headerGradientMid, ClimbingColors.background)))
                 .padding(top = 48.dp, bottom = 12.dp)
                 .padding(horizontal = 20.dp)
         ) {
@@ -343,7 +357,8 @@ fun SectorFinderScreen(
                             forecastDays = forecastDays,
                             disciplineSort = disciplineSort,
                             disciplineScore = viewModel.getBestDisciplineScore(result, disciplineSort),
-                            onClick = { onSectorClick(result) }
+                            onClick = { onSectorClick(result) },
+                            onSubSectorClick = { activeSubSector = it }
                         )
                     }
                 }
@@ -361,7 +376,8 @@ fun SectorFinderScreen(
                             forecastDays = forecastDays,
                             disciplineSort = disciplineSort,
                             disciplineScore = 0,
-                            onClick = { onSectorClick(result) }
+                            onClick = { onSectorClick(result) },
+                            onSubSectorClick = { activeSubSector = it }
                         )
                     }
                 }
@@ -428,10 +444,13 @@ private fun SectorCard(
     forecastDays: Int,
     disciplineSort: DisciplineSort = DisciplineSort.GENERAL,
     disciplineScore: Int = 0,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    onSubSectorClick: (SubSector) -> Unit = {}
 ) {
     val sector = result.sector
     val hasWeather = result.dailyForecast.isNotEmpty()
+    val subSectors = SubSectorCatalog.forSector(sector.nombre)
+    var subExpanded by remember(sector.nombre) { mutableStateOf(false) }
 
     Surface(
         modifier = Modifier
@@ -551,6 +570,61 @@ private fun SectorCard(
                     daily = result.dailyForecast,
                     conditions = result.conditions
                 )
+            }
+
+            // Sub-sectors dropdown
+            if (subSectors.isNotEmpty()) {
+                HorizontalDivider(color = ClimbingColors.divider, thickness = 0.5.dp)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { subExpanded = !subExpanded }
+                        .padding(vertical = 4.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        "📍 ${subSectors.size} zonas · pulsa para valorar",
+                        fontSize = 11.sp,
+                        color = ClimbingColors.primary,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Icon(
+                        if (subExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
+                        contentDescription = null,
+                        tint = ClimbingColors.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                }
+
+                if (subExpanded) {
+                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        subSectors.forEach { sub ->
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clip(RoundedCornerShape(8.dp))
+                                    .background(ClimbingColors.surfaceVariant)
+                                    .clickable { onSubSectorClick(sub) }
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    sub.name,
+                                    fontSize = 13.sp,
+                                    color = ClimbingColors.textPrimary,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    "Ver votos →",
+                                    fontSize = 10.sp,
+                                    color = ClimbingColors.textTertiary
+                                )
+                            }
+                        }
+                    }
+                }
             }
         }
     }

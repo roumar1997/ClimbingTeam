@@ -171,7 +171,10 @@ fun SectorDetailScreen(
             }
         }
 
-        Spacer(Modifier.height(100.dp))
+        // Sub-sector voting section
+        SubSectorInlineSection(sectorName = sector.nombre)
+
+        Spacer(Modifier.height(80.dp))
     }
 }
 

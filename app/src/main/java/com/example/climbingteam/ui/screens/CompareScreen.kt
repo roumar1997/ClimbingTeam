@@ -54,67 +54,72 @@ fun CompareScreen(
                 .verticalScroll(scrollState)
                 .padding(bottom = 80.dp)
         ) {
-            // Header with mountain gradient
+            // ── App header ────────────────────────────────────────────────
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(100.dp)
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                Color(0xFF1A3A5C),
-                                Color(0xFF0F2744),
+                                ClimbingColors.headerGradientTop,
+                                ClimbingColors.headerGradientMid,
                                 ClimbingColors.background
                             )
                         )
                     )
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 50.dp, bottom = 20.dp)
             ) {
                 Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 20.dp)
-                        .padding(top = 48.dp),
+                    modifier             = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment    = Alignment.CenterVertically
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Default.Landscape,
-                            contentDescription = null,
-                            tint = ClimbingColors.primary,
-                            modifier = Modifier.size(28.dp)
-                        )
-                        Spacer(Modifier.width(8.dp))
-                        Text(
-                            "MeteoMonta\u00f1a",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = ClimbingColors.textPrimary,
-                            fontWeight = FontWeight.Bold
-                        )
+                        // Circular gradient logo badge
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(ClimbingColors.primary, ClimbingColors.secondary)
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                Icons.Default.Landscape,
+                                contentDescription = null,
+                                tint     = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                        Spacer(Modifier.width(12.dp))
+                        Column {
+                            Text(
+                                "MeteoMontaña",
+                                style      = MaterialTheme.typography.headlineSmall,
+                                color      = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
+                            val activeCount0 = weatherData.count { it != null }
+                            Text(
+                                if (activeCount0 > 0) "Comparando $activeCount0 zona${if (activeCount0 > 1) "s" else ""}"
+                                else "Compara condiciones de escalada",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = Color.White.copy(alpha = 0.65f)
+                            )
+                        }
                     }
                     IconButton(onClick = { viewModel.refreshAll() }) {
                         Icon(
                             Icons.Default.Refresh,
                             contentDescription = "Refrescar",
-                            tint = ClimbingColors.textSecondary
+                            tint = Color.White.copy(alpha = 0.75f)
                         )
                     }
                 }
-            }
-
-            // Comparing header
-            val activeCount = weatherData.count { it != null }
-            if (activeCount > 0) {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    "COMPARANDO $activeCount RUTAS",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = ClimbingColors.textTertiary,
-                    fontWeight = FontWeight.Bold,
-                    letterSpacing = 1.sp,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
-                Spacer(Modifier.height(8.dp))
             }
 
             // 3 Search bars + Weather cards

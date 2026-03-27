@@ -75,8 +75,11 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.6.1")
     implementation("com.squareup.okhttp3:okhttp:4.12.0")
 
-    // DataStore for favorites
+    // DataStore for favorites + settings
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+
+    // Splash Screen API (backport to API 23+)
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Coil for image loading
     implementation("io.coil-kt:coil-compose:2.6.0")
